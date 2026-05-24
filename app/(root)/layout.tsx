@@ -1,12 +1,27 @@
 import MobileNav from "@/components/MobileNav";
 import Sidebar from "@/components/Sidebar";
+import { getLoggedInUser } from "@/lib/actions/user.actions";
+import { redirect, RedirectType, useRouter } from "next/navigation";
+import * as Sentry from "@sentry/nextjs";
+import type { Metadata } from "next";
 
-export default function RootLayout({
+// Add or edit your "generateMetadata" to include the Sentry trace data:
+export function generateMetadata(): Metadata {
+  return {
+    // ... your existing metadata
+    other: {
+      ...Sentry.getTraceData(),
+    },
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const loggedIn = { firstName: "Nahid", lastName: "Mia" };
+  const loggedIn = await getLoggedInUser();
+  if (!loggedIn) redirect("/sign-in");
 
   return (
     <main className="flex h-screen w-full">
