@@ -140,11 +140,12 @@
   }
 
   .total-balance-label {
-    @apply text-14 font-medium text-gray-600;
+    @apply text-14 font-medium text-gray-600 dark:text-gray-400;
   }
 
   .total-balance-amount {
-    @apply text-24 lg:text-30 flex-1 font-semibold text-gray-900;
+    @apply text-24 lg:text-30 flex-1 font-semibold
+  text-gray-900 dark:text-white;
   }
 
   .recent-transactions {
@@ -152,7 +153,11 @@
   }
 
   .view-all-btn {
-    @apply text-14 rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-700;
+    @apply text-14 rounded-lg border
+  border-gray-300 dark:border-gray-700
+  bg-white dark:bg-gray-800
+  text-gray-700 dark:text-gray-300
+  px-4 py-2.5 font-semibold;
   }
 
   .recent-transactions {
@@ -208,12 +213,16 @@
 
   /* My Banks */
   .my-banks {
-    @apply flex h-screen max-h-screen w-full flex-col gap-8 bg-gray-25 p-8 xl:py-12;
+    @apply flex h-screen max-h-screen w-full flex-col gap-8
+  bg-gray-25 dark:bg-gray-950
+  p-8 xl:py-12;
   }
 
   /* My Banks */
   .transactions {
-    @apply flex max-h-screen w-full flex-col gap-8 overflow-y-scroll bg-gray-25 p-8 xl:py-12;
+    @apply flex max-h-screen w-full flex-col gap-8 overflow-y-scroll
+  bg-gray-25 dark:bg-gray-950
+  p-8 xl:py-12;
   }
 
   .transactions-header {
@@ -221,11 +230,17 @@
   }
 
   .transactions-account {
-    @apply flex flex-col justify-between gap-4 rounded-lg border-y bg-blue-600 px-4 py-5 md:flex-row;
+    @apply flex flex-col justify-between gap-4 rounded-lg border-y
+  bg-blue-600 dark:bg-gray-900
+  border-blue-500 dark:border-gray-700
+  px-4 py-5 md:flex-row;
   }
 
   .transactions-account-balance {
-    @apply flex-center flex-col  gap-2 rounded-md bg-blue-25/20 px-4 py-2 text-white;
+    @apply flex-center flex-col gap-2 rounded-md
+  bg-blue-25/20 dark:bg-gray-800
+  px-4 py-2
+  text-white;
   }
 
   .header-box {
@@ -266,7 +281,8 @@
   }
 
   .banktab-item {
-    @apply gap-[18px] border-b-2 flex px-2 sm:px-4 py-2 transition-all;
+    @apply gap-[18px] border-b-2 flex px-2 sm:px-4 py-2 transition-all 
+    hover:bg-gray-100 dark:hover:bg-gray-800;
   }
 
   /* Mobile nav */
@@ -323,7 +339,9 @@
 
   /* Payment Transfer */
   .payment-transfer {
-    @apply no-scrollbar flex flex-col overflow-y-scroll bg-gray-25 p-8 md:max-h-screen xl:py-12;
+    @apply no-scrollbar flex flex-col overflow-y-scroll
+  bg-gray-25 dark:bg-gray-950
+  p-8 md:max-h-screen xl:py-12;
   }
 
   .payment-transfer_form-item {

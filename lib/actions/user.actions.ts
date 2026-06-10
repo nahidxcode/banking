@@ -104,7 +104,7 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
       secure: true,
     });
 
-    return parseStringify(newUserAccount);
+    return parseStringify(newUser);
   } catch (error) {
     console.error("Error", error);
   }
@@ -115,8 +115,7 @@ export async function getLoggedInUser() {
     const { account } = await createSessionClient();
     const result = await account.get();
 
-    // const user = await getUserInfo({ userId: result.$id });
-    const user = await account.get();
+    const user = await getUserInfo({ userId: result.$id });
 
     return parseStringify(user);
   } catch (error) {
@@ -144,7 +143,7 @@ export const createLinkToken = async (user: User) => {
         client_user_id: user.$id,
       },
       client_name: `${user.firstName} ${user.lastName}`,
-      products: ["auth"] as Products[],
+      products: ["auth", "transactions", "transfer"] as Products[],
       language: "en",
       country_codes: ["US"] as CountryCode[],
     };

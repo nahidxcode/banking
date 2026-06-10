@@ -50,88 +50,187 @@ export const ITEMS = [
 ];
 
 export const topCategoryStyles = {
-  "Food and Drink": {
-    bg: "bg-blue-25",
-    circleBg: "bg-blue-100",
+  "FOOD AND DRINK": {
+    bg: "bg-red-50 dark:bg-red-950/30",
+    circleBg: "bg-red-100 dark:bg-red-900",
     text: {
-      main: "text-blue-900",
-      count: "text-blue-700",
+      main: "text-red-900 dark:text-red-200",
+      count: "text-red-700 dark:text-red-300",
     },
     progress: {
-      bg: "bg-blue-100",
-      indicator: "bg-blue-700",
-    },
-    icon: "/icons/monitor.svg",
-  },
-  Travel: {
-    bg: "bg-success-25",
-    circleBg: "bg-success-100",
-    text: {
-      main: "text-success-900",
-      count: "text-success-700",
-    },
-    progress: {
-      bg: "bg-success-100",
-      indicator: "bg-success-700",
-    },
-    icon: "/icons/coins.svg",
-  },
-  default: {
-    bg: "bg-pink-25",
-    circleBg: "bg-pink-100",
-    text: {
-      main: "text-pink-900",
-      count: "text-pink-700",
-    },
-    progress: {
-      bg: "bg-pink-100",
-      indicator: "bg-pink-700",
+      bg: "bg-red-100 dark:bg-red-900",
+      indicator: "bg-red-600",
     },
     icon: "/icons/shopping-bag.svg",
+  },
+
+  TRAVEL: {
+    bg: "bg-sky-50 dark:bg-sky-950/30",
+    circleBg: "bg-sky-100 dark:bg-sky-900",
+    text: {
+      main: "text-sky-900 dark:text-sky-200",
+      count: "text-sky-700 dark:text-sky-300",
+    },
+    progress: {
+      bg: "bg-sky-100 dark:bg-sky-900",
+      indicator: "bg-sky-600",
+    },
+    icon: "/icons/dollar-circle.svg",
+  },
+
+  TRANSPORTATION: {
+    bg: "bg-purple-50 dark:bg-purple-950/30",
+    circleBg: "bg-purple-100 dark:bg-purple-900",
+    text: {
+      main: "text-purple-900 dark:text-purple-200",
+      count: "text-purple-700 dark:text-purple-300",
+    },
+    progress: {
+      bg: "bg-purple-100 dark:bg-purple-900",
+      indicator: "bg-purple-600",
+    },
+    icon: "/icons/payment-transfer.svg",
+  },
+
+  "GENERAL MERCHANDISE": {
+    bg: "bg-orange-50 dark:bg-orange-950/30",
+    circleBg: "bg-orange-100 dark:bg-orange-900",
+    text: {
+      main: "text-orange-900 dark:text-orange-200",
+      count: "text-orange-700 dark:text-orange-300",
+    },
+    progress: {
+      bg: "bg-orange-100 dark:bg-orange-900",
+      indicator: "bg-orange-600",
+    },
+    icon: "/icons/shopping-bag.svg",
+  },
+
+  "TRANSFER IN": {
+    bg: "bg-emerald-50 dark:bg-emerald-950/30",
+    circleBg: "bg-emerald-100 dark:bg-emerald-900",
+    text: {
+      main: "text-emerald-900 dark:text-emerald-200",
+      count: "text-emerald-700 dark:text-emerald-300",
+    },
+    progress: {
+      bg: "bg-emerald-100 dark:bg-emerald-900",
+      indicator: "bg-emerald-600",
+    },
+    icon: "/icons/deposit.svg",
+  },
+
+  "LOAN PAYMENTS": {
+    bg: "bg-yellow-50 dark:bg-yellow-950/30",
+    circleBg: "bg-yellow-100 dark:bg-yellow-900",
+    text: {
+      main: "text-yellow-900 dark:text-yellow-200",
+      count: "text-yellow-700 dark:text-yellow-300",
+    },
+    progress: {
+      bg: "bg-yellow-100 dark:bg-yellow-900",
+      indicator: "bg-yellow-600",
+    },
+    icon: "/icons/credit-card.svg",
+  },
+
+  Transfer: {
+    bg: "bg-pink-50 dark:bg-pink-950/30",
+    circleBg: "bg-pink-100 dark:bg-pink-900",
+    text: {
+      main: "text-pink-900 dark:text-pink-200",
+      count: "text-pink-700 dark:text-pink-300",
+    },
+    progress: {
+      bg: "bg-pink-100 dark:bg-pink-900",
+      indicator: "bg-pink-600",
+    },
+    icon: "/icons/money-send.svg",
+  },
+
+  default: {
+    bg: "bg-gray-50 dark:bg-gray-900",
+    circleBg: "bg-gray-100 dark:bg-gray-800",
+    text: {
+      main: "text-gray-900 dark:text-white",
+      count: "text-gray-700 dark:text-gray-300",
+    },
+    progress: {
+      bg: "bg-gray-100 dark:bg-gray-800",
+      indicator: "bg-gray-500",
+    },
+    icon: "/icons/transaction.svg",
   },
 };
 
 export const transactionCategoryStyles = {
-  "Food and Drink": {
-    borderColor: "border-pink-600",
-    backgroundColor: "bg-pink-500",
-    textColor: "text-pink-700",
-    chipBackgroundColor: "bg-inherit",
+  "FOOD AND DRINK": {
+    borderColor: "border-red-600",
+    backgroundColor: "bg-red-600",
+    textColor: "text-red-700 dark:text-red-300",
+    chipBackgroundColor: "bg-red-100 dark:bg-red-950/30",
   },
-  Payment: {
-    borderColor: "border-success-600",
-    backgroundColor: "bg-green-600",
-    textColor: "text-success-700",
-    chipBackgroundColor: "bg-inherit",
+
+  TRAVEL: {
+    borderColor: "border-sky-600",
+    backgroundColor: "bg-sky-600",
+    textColor: "text-sky-700 dark:text-sky-300",
+    chipBackgroundColor: "bg-sky-100 dark:bg-sky-950/30",
   },
-  "Bank Fees": {
-    borderColor: "border-success-600",
-    backgroundColor: "bg-green-600",
-    textColor: "text-success-700",
-    chipBackgroundColor: "bg-inherit",
+
+  TRANSPORTATION: {
+    borderColor: "border-purple-600",
+    backgroundColor: "bg-purple-600",
+    textColor: "text-purple-700 dark:text-purple-300",
+    chipBackgroundColor: "bg-purple-100 dark:bg-purple-950/30",
   },
+
+  "GENERAL MERCHANDISE": {
+    borderColor: "border-orange-600",
+    backgroundColor: "bg-orange-600",
+    textColor: "text-orange-700 dark:text-orange-300",
+    chipBackgroundColor: "bg-orange-100 dark:bg-orange-950/30",
+  },
+
+  "TRANSFER IN": {
+    borderColor: "border-emerald-600",
+    backgroundColor: "bg-emerald-600",
+    textColor: "text-emerald-700 dark:text-emerald-300",
+    chipBackgroundColor: "bg-emerald-100 dark:bg-emerald-950/30",
+  },
+
+  "LOAN PAYMENTS": {
+    borderColor: "border-yellow-600",
+    backgroundColor: "bg-yellow-600",
+    textColor: "text-yellow-700 dark:text-yellow-300",
+    chipBackgroundColor: "bg-yellow-100 dark:bg-yellow-950/30",
+  },
+
   Transfer: {
-    borderColor: "border-red-700",
-    backgroundColor: "bg-red-700",
-    textColor: "text-red-700",
-    chipBackgroundColor: "bg-inherit",
+    borderColor: "border-pink-600",
+    backgroundColor: "bg-pink-600",
+    textColor: "text-pink-700 dark:text-pink-300",
+    chipBackgroundColor: "bg-pink-100 dark:bg-pink-950/30",
   },
+
   Processing: {
-    borderColor: "border-[#F2F4F7]",
-    backgroundColor: "bg-gray-500",
-    textColor: "text-[#344054]",
-    chipBackgroundColor: "bg-[#F2F4F7]",
+    borderColor: "border-amber-500",
+    backgroundColor: "bg-amber-500",
+    textColor: "text-amber-700 dark:text-amber-300",
+    chipBackgroundColor: "bg-amber-100 dark:bg-amber-950/30",
   },
+
   Success: {
-    borderColor: "border-[#12B76A]",
-    backgroundColor: "bg-[#12B76A]",
-    textColor: "text-[#027A48]",
-    chipBackgroundColor: "bg-[#ECFDF3]",
+    borderColor: "border-green-500",
+    backgroundColor: "bg-green-500",
+    textColor: "text-green-700 dark:text-green-300",
+    chipBackgroundColor: "bg-green-100 dark:bg-green-950/30",
   },
+
   default: {
-    borderColor: "",
-    backgroundColor: "bg-blue-500",
-    textColor: "text-blue-700",
-    chipBackgroundColor: "bg-inherit",
+    borderColor: "border-gray-500",
+    backgroundColor: "bg-gray-500",
+    textColor: "text-gray-700 dark:text-gray-300",
+    chipBackgroundColor: "bg-gray-100 dark:bg-gray-800",
   },
 };
