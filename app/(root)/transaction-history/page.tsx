@@ -5,6 +5,7 @@ import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 import { getLoggedInUser } from "@/lib/actions/user.actions";
 import { formatAmount } from "@/lib/utils";
 import React from "react";
+import { BankDropdown } from "@/components/BankDropdown";
 
 const TransactionHistory = async ({
   searchParams: { id, page },
@@ -42,6 +43,9 @@ const TransactionHistory = async ({
       </div>
 
       <div className="space-y-6">
+        <div className="mb-6">
+          <BankDropdown accounts={accountsData} />
+        </div>
         <div className="transactions-account">
           <div className="flex flex-col gap-2">
             <h2 className="text-18 font-bold text-gray-900 dark:text-white">

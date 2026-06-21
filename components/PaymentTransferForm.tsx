@@ -9,7 +9,11 @@ import * as z from "zod";
 
 import { createTransfer } from "@/lib/actions/dwolla.actions";
 import { createTransaction } from "@/lib/actions/transaction.actions";
-import { getBank, getBankByAccountId } from "@/lib/actions/user.actions";
+import {
+  getBank,
+  getBankByAccountId,
+  updateBankBalance,
+} from "@/lib/actions/user.actions";
 import { decryptId } from "@/lib/utils";
 
 import { BankDropdown } from "./BankDropdown";
@@ -54,24 +58,43 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 
     try {
       const receiverAccountId = decryptId(data.sharableId);
+
       const receiverBank = await getBankByAccountId({
         accountId: receiverAccountId,
       });
-      const senderBank = await getBank({ documentId: data.senderBank });
+
+      const senderBank = await getBank({
+        documentId: data.senderBank,
+      });
+
+      if (!senderBank || !receiverBank) {
+        throw new Error("Bank account not found");
+      }
 
       console.log("senderBank =", senderBank);
       console.log("receiverBank =", receiverBank);
 
-      const transferParams = {
-        sourceFundingSourceUrl: senderBank.fundingSourceUrl,
-        destinationFundingSourceUrl: receiverBank.fundingSourceUrl,
-        amount: data.amount,
-      };
-      // create transfer
-      const transfer = await createTransfer(transferParams);
+      const amount = Number(data.amount);
 
-      // create transfer transaction
-      if (transfer) {
+      const isManualTransfer = senderBank.isManual || receiverBank.isManual;
+
+      if (isManualTransfer) {
+        // deduct from demo sender
+        if (senderBank.isManual) {
+          await updateBankBalance({
+            bankId: senderBank.$id,
+            currentBalance: Number(senderBank.currentBalance || 0) - amount,
+          });
+        }
+
+        // add to demo receiver
+        if (receiverBank.isManual) {
+          await updateBankBalance({
+            bankId: receiverBank.$id,
+            currentBalance: Number(receiverBank.currentBalance || 0) + amount,
+          });
+        }
+
         const transaction = {
           name: data.name,
           amount: data.amount,
@@ -81,6 +104,7 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
 
           senderBankId: senderBank.$id,
           receiverBankId: receiverBank.$id,
+
           email: data.email,
         };
 
@@ -90,9 +114,39 @@ const PaymentTransferForm = ({ accounts }: PaymentTransferFormProps) => {
           form.reset();
           router.push("/");
         }
+      } else {
+        const transferParams = {
+          sourceFundingSourceUrl: senderBank.fundingSourceUrl,
+          destinationFundingSourceUrl: receiverBank.fundingSourceUrl,
+          amount: data.amount,
+        };
+
+        const transfer = await createTransfer(transferParams);
+
+        if (transfer) {
+          const transaction = {
+            name: data.name,
+            amount: data.amount,
+
+            senderId: senderBank.userId,
+            receiverId: receiverBank.userId,
+
+            senderBankId: senderBank.$id,
+            receiverBankId: receiverBank.$id,
+
+            email: data.email,
+          };
+
+          const newTransaction = await createTransaction(transaction);
+
+          if (newTransaction) {
+            form.reset();
+            router.push("/");
+          }
+        }
       }
     } catch (error) {
-      console.error("Submitting create transfer request failed: ", error);
+      console.error("Submitting create transfer request failed:", error);
     }
 
     setIsLoading(false);

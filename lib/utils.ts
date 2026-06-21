@@ -65,14 +65,23 @@ export const formatDateTime = (dateString: Date) => {
   };
 };
 
-export function formatAmount(amount: number): string {
-  const formatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  });
+// export function formatAmount(amount: number): string {
+//   const formatter = new Intl.NumberFormat("en-US", {
+//     style: "currency",
+//     currency: "USD",
+//     minimumFractionDigits: 2,
+//   });
 
-  return formatter.format(amount);
+//   return formatter.format(amount);
+// }
+
+export function formatAmount(amount: number): string {
+  const absAmount = Math.abs(amount);
+
+  return `৳${new Intl.NumberFormat("en-BD", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(absAmount)}`;
 }
 
 export const parseStringify = (value: any) => JSON.parse(JSON.stringify(value));
@@ -135,25 +144,23 @@ export function countTransactionCategories(
   const categoryCounts: { [category: string]: number } = {};
   let totalCount = 0;
 
-  // Iterate over each transaction
-  transactions &&
-    transactions.forEach((transaction) => {
-      // Extract the category from the transaction
-      const category = transaction.category;
+  // Exclude income from spending categories
+  const filteredTransactions =
+    transactions?.filter((transaction) => transaction.category !== "INCOME") ||
+    [];
 
-      // If the category exists in the categoryCounts object, increment its count
-      if (categoryCounts.hasOwnProperty(category)) {
-        categoryCounts[category]++;
-      } else {
-        // Otherwise, initialize the count to 1
-        categoryCounts[category] = 1;
-      }
+  filteredTransactions.forEach((transaction) => {
+    const category = transaction.category;
 
-      // Increment total count
-      totalCount++;
-    });
+    if (categoryCounts.hasOwnProperty(category)) {
+      categoryCounts[category]++;
+    } else {
+      categoryCounts[category] = 1;
+    }
 
-  // Convert the categoryCounts object to an array of objects
+    totalCount++;
+  });
+
   const aggregatedCategories: CategoryCount[] = Object.keys(categoryCounts).map(
     (category) => ({
       name: category,
@@ -162,7 +169,6 @@ export function countTransactionCategories(
     }),
   );
 
-  // Sort the aggregatedCategories array by count in descending order
   aggregatedCategories.sort((a, b) => b.count - a.count);
 
   return aggregatedCategories;

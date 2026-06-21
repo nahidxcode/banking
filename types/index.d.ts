@@ -61,6 +61,7 @@ declare type Account = {
   subtype: string;
   appwriteItemId: string;
   sharableId: string;
+  accountType?: "bank" | "mfs";
 };
 
 declare type Transaction = {
@@ -90,6 +91,13 @@ declare type Bank = {
   fundingSourceUrl: string;
   userId: string;
   sharableId: string;
+
+  isManual?: boolean;
+  bankName?: string;
+
+  currentBalance?: number;
+  availableBalance?: number;
+  accountType?: "bank" | "mfs";
 };
 
 declare type AccountTypes =
@@ -178,15 +186,6 @@ declare interface PlaidLinkProps {
   variant?: "primary" | "ghost";
   dwollaCustomerId?: string;
 }
-
-// declare type User = sdk.Models.Document & {
-//   accountId: string;
-//   email: string;
-//   name: string;
-//   items: string[];
-//   accessToken: string;
-//   image: string;
-// };
 
 declare interface AuthFormProps {
   type: "sign-in" | "sign-up";
@@ -327,4 +326,32 @@ declare interface getBankProps {
 
 declare interface getBankByAccountIdProps {
   accountId: string;
+}
+declare type Goal = {
+  $id: string;
+  userId: string;
+  title: string;
+  targetAmount: number;
+  savedAmount: number;
+  deadline: string;
+};
+
+declare interface CreateGoalProps {
+  userId: string;
+  title: string;
+  targetAmount: number;
+  deadline: string;
+}
+
+declare type Budget = {
+  $id: string;
+  userId: string;
+  category: string;
+  monthlyLimit: number;
+};
+
+declare interface CreateBudgetProps {
+  userId: string;
+  category: string;
+  monthlyLimit: number;
 }

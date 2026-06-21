@@ -6,29 +6,64 @@ import React from "react";
 
 const MyBanks = async () => {
   const loggedIn = await getLoggedInUser();
+
   const accounts = await getAccounts({
     userId: loggedIn.$id,
   });
+
+  const bankAccounts =
+    accounts?.data.filter(
+      (account: Account) => account.accountType !== "mfs",
+    ) || [];
+
+  const walletAccounts =
+    accounts?.data.filter(
+      (account: Account) => account.accountType === "mfs",
+    ) || [];
 
   return (
     <section className="flex">
       <div className="my-banks">
         <HeaderBox
-          title="My Bank Accounts"
-          subtext="Effortlessly manage your banking activites."
+          title="My Accounts"
+          subtext="Manage your bank accounts and mobile wallets."
         />
 
+        {/* BANKS */}
         <div className="space-y-4">
-          <h2 className="header-2">Your cards</h2>
+          <h2 className="header-2">Your Banks</h2>
+
           <div className="flex flex-wrap gap-6">
-            {accounts &&
-              accounts.data.map((a: Account) => (
+            {bankAccounts.length > 0 ? (
+              bankAccounts.map((a: Account) => (
                 <BankCard
-                  key={accounts.id}
+                  key={a.id}
                   account={a}
                   userName={loggedIn?.firstName}
                 />
-              ))}
+              ))
+            ) : (
+              <p className="text-gray-500">No bank accounts connected.</p>
+            )}
+          </div>
+        </div>
+
+        {/* WALLETS */}
+        <div className="space-y-4">
+          <h2 className="header-2">Your Wallets</h2>
+
+          <div className="flex flex-wrap gap-6">
+            {walletAccounts.length > 0 ? (
+              walletAccounts.map((a: Account) => (
+                <BankCard
+                  key={a.id}
+                  account={a}
+                  userName={loggedIn?.firstName}
+                />
+              ))
+            ) : (
+              <p className="text-gray-500">No mobile wallets connected.</p>
+            )}
           </div>
         </div>
       </div>

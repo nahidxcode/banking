@@ -5,6 +5,26 @@ export const sidebarLinks = [
     label: "Home",
   },
   {
+    imgURL: "/icons/deposit.svg",
+    route: "/financial-insights",
+    label: "Financial Insights",
+  },
+  {
+    imgURL: "/icons/transaction.svg",
+    route: "/monthly-analytics",
+    label: "Monthly Analytics",
+  },
+  {
+    imgURL: "/icons/plus.svg",
+    route: "/goals",
+    label: "Goals",
+  },
+  {
+    imgURL: "/icons/edit.svg",
+    route: "/budget-planner",
+    label: "Budget Planner",
+  },
+  {
     imgURL: "/icons/dollar-circle.svg",
     route: "/my-banks",
     label: "My Banks",
@@ -19,6 +39,11 @@ export const sidebarLinks = [
     route: "/payment-transfer",
     label: "Transfer Funds",
   },
+  // {
+  //   imgURL: "/icons/dollar-circle.svg",
+  //   route: "/demo-bank",
+  //   label: "Demo Banks",
+  // },
 ];
 
 // good_user / good_password - Bank of America
@@ -147,6 +172,89 @@ export const topCategoryStyles = {
     },
     icon: "/icons/money-send.svg",
   },
+  ENTERTAINMENT: {
+    bg: "bg-pink-50 dark:bg-pink-950/30",
+    circleBg: "bg-pink-100 dark:bg-pink-900",
+    text: {
+      main: "text-pink-900 dark:text-pink-200",
+      count: "text-pink-700 dark:text-pink-300",
+    },
+    progress: {
+      bg: "bg-pink-100 dark:bg-pink-900",
+      indicator: "bg-pink-600",
+    },
+    icon: "/icons/transaction.svg",
+  },
+
+  BILLS: {
+    bg: "bg-yellow-50 dark:bg-yellow-950/30",
+    circleBg: "bg-yellow-100 dark:bg-yellow-900",
+    text: {
+      main: "text-yellow-900 dark:text-yellow-200",
+      count: "text-yellow-700 dark:text-yellow-300",
+    },
+    progress: {
+      bg: "bg-yellow-100 dark:bg-yellow-900",
+      indicator: "bg-yellow-600",
+    },
+    icon: "/icons/dollar-circle.svg",
+  },
+
+  HEALTHCARE: {
+    bg: "bg-rose-50 dark:bg-rose-950/30",
+    circleBg: "bg-rose-100 dark:bg-rose-900",
+    text: {
+      main: "text-rose-900 dark:text-rose-200",
+      count: "text-rose-700 dark:text-rose-300",
+    },
+    progress: {
+      bg: "bg-rose-100 dark:bg-rose-900",
+      indicator: "bg-rose-600",
+    },
+    icon: "/icons/home.svg",
+  },
+
+  SUBSCRIPTIONS: {
+    bg: "bg-indigo-50 dark:bg-indigo-950/30",
+    circleBg: "bg-indigo-100 dark:bg-indigo-900",
+    text: {
+      main: "text-indigo-900 dark:text-indigo-200",
+      count: "text-indigo-700 dark:text-indigo-300",
+    },
+    progress: {
+      bg: "bg-indigo-100 dark:bg-indigo-900",
+      indicator: "bg-indigo-600",
+    },
+    icon: "/icons/transaction.svg",
+  },
+
+  SHOPPING: {
+    bg: "bg-orange-50 dark:bg-orange-950/30",
+    circleBg: "bg-orange-100 dark:bg-orange-900",
+    text: {
+      main: "text-orange-900 dark:text-orange-200",
+      count: "text-orange-700 dark:text-orange-300",
+    },
+    progress: {
+      bg: "bg-orange-100 dark:bg-orange-900",
+      indicator: "bg-orange-600",
+    },
+    icon: "/icons/shopping-bag.svg",
+  },
+
+  INCOME: {
+    bg: "bg-emerald-50 dark:bg-emerald-950/30",
+    circleBg: "bg-emerald-100 dark:bg-emerald-900",
+    text: {
+      main: "text-emerald-900 dark:text-emerald-200",
+      count: "text-emerald-700 dark:text-emerald-300",
+    },
+    progress: {
+      bg: "bg-emerald-100 dark:bg-emerald-900",
+      indicator: "bg-emerald-600",
+    },
+    icon: "/icons/deposit.svg",
+  },
 
   default: {
     bg: "bg-gray-50 dark:bg-gray-900",
@@ -211,6 +319,48 @@ export const transactionCategoryStyles = {
     backgroundColor: "bg-pink-600",
     textColor: "text-pink-700 dark:text-pink-300",
     chipBackgroundColor: "bg-pink-100 dark:bg-pink-950/30",
+  },
+
+  ENTERTAINMENT: {
+    borderColor: "border-pink-600",
+    backgroundColor: "bg-pink-600",
+    textColor: "text-pink-700 dark:text-pink-300",
+    chipBackgroundColor: "bg-pink-100 dark:bg-pink-950/30",
+  },
+
+  BILLS: {
+    borderColor: "border-yellow-600",
+    backgroundColor: "bg-yellow-600",
+    textColor: "text-yellow-700 dark:text-yellow-300",
+    chipBackgroundColor: "bg-yellow-100 dark:bg-yellow-950/30",
+  },
+
+  HEALTHCARE: {
+    borderColor: "border-rose-600",
+    backgroundColor: "bg-rose-600",
+    textColor: "text-rose-700 dark:text-rose-300",
+    chipBackgroundColor: "bg-rose-100 dark:bg-rose-950/30",
+  },
+
+  SUBSCRIPTIONS: {
+    borderColor: "border-indigo-600",
+    backgroundColor: "bg-indigo-600",
+    textColor: "text-indigo-700 dark:text-indigo-300",
+    chipBackgroundColor: "bg-indigo-100 dark:bg-indigo-950/30",
+  },
+
+  SHOPPING: {
+    borderColor: "border-orange-600",
+    backgroundColor: "bg-orange-600",
+    textColor: "text-orange-700 dark:text-orange-300",
+    chipBackgroundColor: "bg-orange-100 dark:bg-orange-950/30",
+  },
+
+  INCOME: {
+    borderColor: "border-emerald-600",
+    backgroundColor: "bg-emerald-600",
+    textColor: "text-emerald-700 dark:text-emerald-300",
+    chipBackgroundColor: "bg-emerald-100 dark:bg-emerald-950/30",
   },
 
   Processing: {

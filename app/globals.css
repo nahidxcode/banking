@@ -214,6 +214,7 @@
   /* My Banks */
   .my-banks {
     @apply flex h-screen max-h-screen w-full flex-col gap-8
+  overflow-y-auto
   bg-gray-25 dark:bg-gray-950
   p-8 xl:py-12;
   }
@@ -268,6 +269,29 @@
     @apply flex size-full flex-1 flex-col items-end justify-between rounded-r-[20px] bg-black-1 bg-cover bg-center bg-no-repeat py-5 pr-5;
   }
 
+  /* mfs card */
+  .mfs-card {
+    @apply relative flex h-[190px] w-full max-w-[320px]
+  flex-col justify-between rounded-[20px]
+  p-5 text-white shadow-creditCard;
+  }
+
+  .mfs-card-bkash {
+    background: #e2136e;
+  }
+
+  .mfs-card-nagad {
+    background: #f97316;
+  }
+
+  .mfs-card-rocket {
+    background: #7c3aed;
+  }
+
+  .mfs-card-upay {
+    background: #16a34a;
+  }
+
   /* Bank Info */
   .bank-info {
     @apply gap-[18px] flex p-4 transition-all border 
@@ -295,16 +319,26 @@
   }
 
   /* PlaidLink */
+
   .plaidlink-primary {
-    @apply text-16 rounded-lg border border-bankGradient bg-bank-gradient font-semibold text-white shadow-form;
+    @apply text-16 rounded-lg border border-bankGradient bg-bank-gradient font-semibold text-white shadow-form
+  dark:border-blue-500 dark:bg-blue-600 dark:hover:bg-blue-700;
   }
 
   .plaidlink-ghost {
-    @apply flex cursor-pointer items-center justify-center gap-3 rounded-lg px-3 py-7 hover:bg-white lg:justify-start;
+    @apply flex cursor-pointer items-center justify-center gap-3 rounded-lg px-3 py-7
+  hover:bg-gray-100
+  dark:hover:bg-slate-800
+  dark:text-white
+  lg:justify-start;
   }
 
   .plaidlink-default {
-    @apply flex !justify-start cursor-pointer gap-3 rounded-lg !bg-transparent flex-row;
+    @apply flex cursor-pointer flex-row gap-3 rounded-lg !bg-transparent !justify-start
+  text-gray-900
+  hover:bg-gray-100
+  dark:text-white
+  dark:hover:bg-slate-800;
   }
 
   /* Auth */
@@ -479,4 +513,18 @@
 body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
+}
+
+.financial-insights {
+  @apply flex max-h-screen w-full flex-col gap-8 overflow-y-scroll
+  p-8 xl:py-12;
+}
+
+.goals-page {
+  @apply flex max-h-screen w-full flex-col gap-8 overflow-y-scroll
+  p-8 xl:py-12;
+}
+
+.monthly-analytics {
+  @apply flex h-full w-full flex-col gap-8 overflow-y-auto p-8 xl:py-12;
 }

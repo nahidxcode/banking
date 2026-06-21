@@ -21,7 +21,12 @@ export const BankDropdown = ({
 }: BankDropdownProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [selected, setSeclected] = useState(accounts[0]);
+  const selectedAccount =
+    accounts.find(
+      (account) => account.appwriteItemId === searchParams.get("id"),
+    ) || accounts[0];
+
+  const [selected, setSeclected] = useState(selectedAccount);
 
   const handleBankChange = (id: string) => {
     const account = accounts.find((account) => account.appwriteItemId === id)!;

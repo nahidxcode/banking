@@ -15,6 +15,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Footer from "./Footer";
+import PlaidLink from "./PlaidLink";
 
 const MobileNav = ({ user }: MobileNavProps) => {
   const pathname = usePathname();
@@ -56,7 +57,6 @@ const MobileNav = ({ user }: MobileNavProps) => {
                     <SheetClose asChild key={item.route}>
                       <Link
                         href={item.route}
-                        key={item.label}
                         className={cn(
                           "mobilenav-link_close w-full dark:hover:bg-gray-800",
                           {
@@ -86,7 +86,8 @@ const MobileNav = ({ user }: MobileNavProps) => {
                     </SheetClose>
                   );
                 })}
-                USER
+
+                <PlaidLink user={user} variant="ghost" />
               </nav>
             </SheetClose>
             <Footer user={user} type="mobile" />

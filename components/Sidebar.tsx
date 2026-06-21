@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Footer from "./Footer";
 import PlaidLink from "./PlaidLink";
+import ConnectAccountModal from "./ConnectAccountModal";
 
 const Sidebar = ({ user }: SiderbarProps) => {
   const pathname = usePathname();
@@ -25,34 +26,37 @@ const Sidebar = ({ user }: SiderbarProps) => {
           />
           <h1 className="sidebar-logo">FinLink</h1>
         </Link>
-        {sidebarLinks.map((item) => {
-          const isActive =
-            pathname === item.route || pathname.startsWith("${item.route}/");
+        {sidebarLinks
+          // .filter((item) => item.route !== "/demo-bank")
+          .map((item) => {
+            const isActive =
+              pathname === item.route || pathname.startsWith("${item.route}/");
 
-          return (
-            <Link
-              href={item.route}
-              key={item.label}
-              className={cn("sidebar-link", {
-                "bg-bank-gradient": isActive,
-              })}>
-              <div className="relative size-6">
-                <Image
-                  src={item.imgURL}
-                  alt={item.label}
-                  fill
-                  className={cn({
-                    "brightness-[3] invert-0": isActive,
-                  })}
-                />
-              </div>
-              <p className={cn("sidebar-label", { "!text-white": isActive })}>
-                {item.label}
-              </p>
-            </Link>
-          );
-        })}
-        <PlaidLink user={user} />
+            return (
+              <Link
+                href={item.route}
+                key={item.label}
+                className={cn("sidebar-link", {
+                  "bg-bank-gradient": isActive,
+                })}>
+                <div className="relative size-6">
+                  <Image
+                    src={item.imgURL}
+                    alt={item.label}
+                    fill
+                    className={cn({
+                      "brightness-[3] invert-0": isActive,
+                    })}
+                  />
+                </div>
+                <p className={cn("sidebar-label", { "!text-white": isActive })}>
+                  {item.label}
+                </p>
+              </Link>
+            );
+          })}
+        {/* <PlaidLink user={user} /> */}
+        <ConnectAccountModal userId={user.$id} />
       </nav>
       <Footer user={user} />
     </section>

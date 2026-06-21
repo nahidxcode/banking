@@ -12,9 +12,9 @@ const {
 export const createTransaction = async (
   transaction: CreateTransactionProps,
 ) => {
-  console.log("TRANSACTION OBJECT:", transaction);
-  console.log("senderId:", transaction.senderId);
-  console.log("receiverId:", transaction.receiverId);
+  // console.log("TRANSACTION OBJECT:", transaction);
+  // console.log("senderId:", transaction.senderId);
+  // console.log("receiverId:", transaction.receiverId);
 
   try {
     const { database } = await createAdminClient();
