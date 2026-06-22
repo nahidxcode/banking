@@ -2,7 +2,9 @@ export const calculateBudgetRecommendations = (transactions: Transaction[]) => {
   const categoryMonths: Record<string, Record<string, number>> = {};
 
   transactions.forEach((transaction) => {
-    if (transaction.type === "credit") return;
+    // only budget real spending, skip income + transfers
+    if (transaction.type === "credit" || transaction.category === "Transfer")
+      return;
 
     const date = new Date(transaction.date);
 

@@ -6,31 +6,39 @@ import { createAdminClient } from "../appwrite";
 const { APPWRITE_DATABASE_ID, APPWRITE_DEMO_TRANSACTION_COLLECTION_ID } =
   process.env;
 
+// categories use plaid's personal_finance_category values; amounts in BDT, kept
+// in a tight band (~100-3500) so no one category dominates the charts
 const sampleTransactions = [
-  ["Amazon", "GENERAL MERCHANDISE", "debit", [40, 160]],
-  ["Walmart", "GENERAL MERCHANDISE", "debit", [30, 140]],
-  ["Target", "GENERAL MERCHANDISE", "debit", [25, 120]],
+  ["Shwapno", "GENERAL MERCHANDISE", "debit", [300, 1600]],
+  ["Meena Bazar", "GENERAL MERCHANDISE", "debit", [400, 1800]],
+  ["Agora", "GENERAL MERCHANDISE", "debit", [350, 1700]],
+  ["Daraz", "GENERAL MERCHANDISE", "debit", [500, 2000]],
 
-  ["McDonald's", "FOOD AND DRINK", "debit", [40, 110]],
-  ["Starbucks", "FOOD AND DRINK", "debit", [30, 150]],
-  ["Pizza Hut", "FOOD AND DRINK", "debit", [45, 120]],
-  ["KFC", "FOOD AND DRINK", "debit", [30, 105]],
+  ["Sultan's Dine", "FOOD AND DRINK", "debit", [300, 1400]],
+  ["Star Kabab", "FOOD AND DRINK", "debit", [150, 700]],
+  ["Kacchi Bhai", "FOOD AND DRINK", "debit", [300, 1200]],
+  ["Chillox", "FOOD AND DRINK", "debit", [250, 900]],
+  ["North End Coffee", "FOOD AND DRINK", "debit", [200, 600]],
 
-  ["Uber", "TRANSPORTATION", "debit", [30, 95]],
-  ["Shell Gas", "TRANSPORTATION", "debit", [60, 120]],
-  ["Fuel Station", "TRANSPORTATION", "debit", [70, 150]],
+  ["Pathao Ride", "TRANSPORTATION", "debit", [80, 500]],
+  ["Uber Dhaka", "TRANSPORTATION", "debit", [120, 600]],
+  ["CNG Fare", "TRANSPORTATION", "debit", [60, 350]],
+  ["Padma Fuel Station", "TRANSPORTATION", "debit", [500, 1500]],
 
-  ["Electric Bill", "BILLS", "debit", [50, 120]],
-  ["Internet Bill", "BILLS", "debit", [50, 90]],
-  ["Water Bill", "BILLS", "debit", [50, 60]],
+  ["DESCO Electricity", "BILLS", "debit", [700, 2200]],
+  ["Titas Gas", "BILLS", "debit", [600, 1100]],
+  ["WASA Water", "BILLS", "debit", [300, 700]],
+  ["Link3 Internet", "BILLS", "debit", [800, 1400]],
 
-  ["Best Buy", "SHOPPING", "debit", [50, 250]],
-  ["Fashion Store", "SHOPPING", "debit", [40, 280]],
+  ["Aarong", "SHOPPING", "debit", [700, 2500]],
+  ["Bata Shoes", "SHOPPING", "debit", [500, 1800]],
+  ["Yellow Clothing", "SHOPPING", "debit", [600, 2200]],
 
-  ["Booking.com", "TRAVEL", "debit", [120, 250]],
-  ["Airline Ticket", "TRAVEL", "debit", [100, 350]],
+  ["Green Line Bus", "TRAVEL", "debit", [800, 1800]],
+  ["Biman Bangladesh", "TRAVEL", "debit", [2000, 3500]],
+  ["Cox's Bazar Hotel", "TRAVEL", "debit", [1500, 3000]],
 
-  ["Freelance Payment", "INCOME", "credit", [100, 800]],
+  ["Remittance", "INCOME", "credit", [3000, 15000]],
 ];
 
 export const generateDemoTransactions = async (bankId: string) => {
@@ -38,8 +46,10 @@ export const generateDemoTransactions = async (bankId: string) => {
 
   const today = new Date();
 
-  // RECURRING MONTHLY TRANSACTIONS
-  // Salary every month
+  // build all rows first, then write concurrently to avoid ~40-70 sequential writes
+  const rows: Record<string, unknown>[] = [];
+
+  // monthly salary for the last 6 months
   for (let monthOffset = 0; monthOffset < 6; monthOffset++) {
     const baseDate = new Date(today);
 
@@ -48,22 +58,17 @@ export const generateDemoTransactions = async (bankId: string) => {
     const salaryDate = new Date(baseDate);
     salaryDate.setDate(1);
 
-    await database.createDocument(
-      APPWRITE_DATABASE_ID!,
-      APPWRITE_DEMO_TRANSACTION_COLLECTION_ID!,
-      ID.unique(),
-      {
-        bankId,
-        name: "Salary",
-        amount: Math.floor(Math.random() * 1000) + 1000,
-        category: "INCOME",
-        type: "credit",
-        date: salaryDate.toISOString(),
-      },
-    );
+    rows.push({
+      bankId,
+      name: "Salary",
+      amount: Math.floor(Math.random() * 10000) + 10000,
+      category: "INCOME",
+      type: "credit",
+      date: salaryDate.toISOString(),
+    });
   }
 
-  // RANDOM TRANSACTIONS
+  // random transactions
   const randomTransactionCount = Math.floor(Math.random() * 35) + 30;
 
   for (let i = 0; i < randomTransactionCount; i++) {
@@ -78,24 +83,35 @@ export const generateDemoTransactions = async (bankId: string) => {
 
     const randomDate = new Date();
 
-    randomDate.setMonth(randomDate.getMonth() - Math.floor(Math.random() * 6));
+    const monthOffset = Math.floor(Math.random() * 6);
 
-    randomDate.setDate(Math.floor(Math.random() * 28) + 1);
+    randomDate.setMonth(today.getMonth() - monthOffset);
 
-    await database.createDocument(
-      APPWRITE_DATABASE_ID!,
-      APPWRITE_DEMO_TRANSACTION_COLLECTION_ID!,
-      ID.unique(),
-      {
-        bankId,
-        name,
-        amount,
-        category,
-        type,
-        date: randomDate.toISOString(),
-      },
-    );
+    // current month: don't go past today
+    const maxDay = monthOffset === 0 ? today.getDate() : 28;
+
+    randomDate.setDate(Math.floor(Math.random() * maxDay) + 1);
+
+    rows.push({
+      bankId,
+      name,
+      amount,
+      category,
+      type,
+      date: randomDate.toISOString(),
+    });
   }
+
+  await Promise.all(
+    rows.map((data) =>
+      database.createDocument(
+        APPWRITE_DATABASE_ID!,
+        APPWRITE_DEMO_TRANSACTION_COLLECTION_ID!,
+        ID.unique(),
+        data,
+      ),
+    ),
+  );
 };
 
 export const getDemoTransactions = async (bankId: string) => {
@@ -105,10 +121,66 @@ export const getDemoTransactions = async (bankId: string) => {
     const transactions = await database.listDocuments(
       APPWRITE_DATABASE_ID!,
       APPWRITE_DEMO_TRANSACTION_COLLECTION_ID!,
-      [Query.equal("bankId", [bankId])],
+      [Query.equal("bankId", [bankId]), Query.limit(100)],
     );
 
     return transactions.documents;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const createDemoTransaction = async ({
+  bankId,
+  name,
+  amount,
+  category,
+  type,
+  date,
+}: {
+  bankId: string;
+  name: string;
+  amount: number;
+  category: string;
+  type: "credit" | "debit";
+  date: string;
+}) => {
+  const { database } = await createAdminClient();
+
+  return await database.createDocument(
+    APPWRITE_DATABASE_ID!,
+    APPWRITE_DEMO_TRANSACTION_COLLECTION_ID!,
+    ID.unique(),
+    {
+      bankId,
+      name,
+      amount,
+      category,
+      type,
+      date,
+    },
+  );
+};
+
+export const deleteDemoTransactionsByBankId = async (bankId: string) => {
+  try {
+    const { database } = await createAdminClient();
+
+    const transactions = await database.listDocuments(
+      APPWRITE_DATABASE_ID!,
+      APPWRITE_DEMO_TRANSACTION_COLLECTION_ID!,
+      [Query.equal("bankId", [bankId]), Query.limit(100)],
+    );
+
+    await Promise.all(
+      transactions.documents.map((doc) =>
+        database.deleteDocument(
+          APPWRITE_DATABASE_ID!,
+          APPWRITE_DEMO_TRANSACTION_COLLECTION_ID!,
+          doc.$id,
+        ),
+      ),
+    );
   } catch (error) {
     console.log(error);
   }

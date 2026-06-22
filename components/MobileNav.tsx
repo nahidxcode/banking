@@ -16,12 +16,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Footer from "./Footer";
 import PlaidLink from "./PlaidLink";
+import ThemeToggle from "./ThemeToggle";
 
 const MobileNav = ({ user }: MobileNavProps) => {
   const pathname = usePathname();
 
   return (
-    <section className="w-full max-w-[264px]">
+    <section className="flex w-full max-w-[264px] items-center gap-3">
       <Sheet>
         <SheetTrigger>
           <Image
@@ -94,6 +95,8 @@ const MobileNav = ({ user }: MobileNavProps) => {
           </div>
         </SheetContent>
       </Sheet>
+
+      <ThemeToggle iconOnly />
     </section>
   );
 };

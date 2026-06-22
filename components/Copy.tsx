@@ -21,8 +21,8 @@ const Copy = ({ title }: { title: string }) => {
       className="mt-3 flex max-w-[320px] gap-4"
       variant="secondary"
       onClick={copyToClipboard}>
-      <p className="line-clamp-1 w-full max-w-full text-xs font-medium text-black-2">
-        {title} test
+      <p className="line-clamp-1 w-full max-w-full text-xs font-medium text-black-2 dark:text-gray-200">
+        {title}
       </p>
 
       {!hasCopied ? (

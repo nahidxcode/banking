@@ -12,9 +12,22 @@ const DoughnutChart = ({ accounts }: DoughnutChartProps) => {
   const data = {
     datasets: [
       {
-        label: "Banks",
+        label: "Balance",
         data: balances,
-        backgroundColor: ["#37f194", "#2ae02a", "#09a804"],
+        backgroundColor: [
+          "#2E90FA",
+          "#9b8afb",
+          "#16a34a",
+          "#6172F3",
+          "#f59e0b",
+          "#ef4444",
+          "#14b8a6",
+          "#ec4899",
+        ],
+        // Gaps between slices separate the colors without drawing a ring
+        // around the outer/inner edges.
+        borderWidth: 0,
+        spacing: 4,
       },
     ],
     labels: accountNames,
@@ -24,10 +37,13 @@ const DoughnutChart = ({ accounts }: DoughnutChartProps) => {
     <Doughnut
       data={data}
       options={{
-        cutout: "10%",
+        cutout: "68%",
         plugins: {
           legend: {
             display: false,
+          },
+          tooltip: {
+            enabled: true,
           },
         },
       }}

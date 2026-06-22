@@ -1,6 +1,7 @@
 "use server";
 
 import { ID, Query } from "node-appwrite";
+import { revalidatePath } from "next/cache";
 import { createAdminClient } from "../appwrite";
 import { parseStringify } from "../utils";
 
@@ -30,7 +31,44 @@ export const createTransaction = async (
       },
     );
 
+    revalidatePath("/");
+    revalidatePath("/transaction-history");
+
     return parseStringify(newTransaction);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// delete transfer records involving any of the given bank ids
+export const deleteTransactionsByBankIds = async (bankIds: string[]) => {
+  try {
+    if (bankIds.length === 0) return;
+
+    const { database } = await createAdminClient();
+
+    const [sent, received] = await Promise.all([
+      database.listDocuments(DATABASE_ID!, TRANSACTION_COLLECTION_ID!, [
+        Query.equal("senderBankId", bankIds),
+        Query.limit(200),
+      ]),
+      database.listDocuments(DATABASE_ID!, TRANSACTION_COLLECTION_ID!, [
+        Query.equal("receiverBankId", bankIds),
+        Query.limit(200),
+      ]),
+    ]);
+
+    const ids = Array.from(
+      new Set(
+        [...sent.documents, ...received.documents].map((doc) => doc.$id),
+      ),
+    );
+
+    await Promise.all(
+      ids.map((id) =>
+        database.deleteDocument(DATABASE_ID!, TRANSACTION_COLLECTION_ID!, id),
+      ),
+    );
   } catch (error) {
     console.log(error);
   }

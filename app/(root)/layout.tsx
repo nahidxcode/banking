@@ -1,6 +1,6 @@
 import MobileNav from "@/components/MobileNav";
 import Sidebar from "@/components/Sidebar";
-import { getLoggedInUser } from "@/lib/actions/user.actions";
+import { getLoggedInUser } from "@/lib/auth";
 import { redirect, RedirectType, useRouter } from "next/navigation";
 import * as Sentry from "@sentry/nextjs";
 import type { Metadata } from "next";

@@ -35,7 +35,7 @@ const BudgetCard = ({
 
   return (
     <div
-      className={`rounded-xl border p-5 transition-all dark:bg-slate-900/30 ${
+      className={`rounded-xl border p-5 transition-all dark:bg-slate-800 ${
         status === "over"
           ? "border-red-500/40"
           : status === "warning"

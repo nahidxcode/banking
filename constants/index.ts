@@ -27,7 +27,7 @@ export const sidebarLinks = [
   {
     imgURL: "/icons/dollar-circle.svg",
     route: "/my-banks",
-    label: "My Banks",
+    label: "My Accounts",
   },
   {
     imgURL: "/icons/transaction.svg",
@@ -45,6 +45,12 @@ export const sidebarLinks = [
   //   label: "Demo Banks",
   // },
 ];
+
+// Fixed conversion rate used for remittance withdrawals (USD -> BDT)
+export const USD_TO_BDT = 120;
+
+// Remittance providers shown in the Connect Account flow
+export const remittanceOptions = ["Payoneer", "Wise", "ElevatePay"];
 
 // good_user / good_password - Bank of America
 export const TEST_USER_ID = "6627ed3d00267aa6fa3e";

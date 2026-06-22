@@ -131,7 +131,7 @@ const DemoBankForm = ({ userId }: { userId: string }) => {
                   onChange={(e) => setBankName(e.target.value)}
                   className="rounded-lg border bg-transparent p-3">
                   {bankOptions.map((bank) => (
-                    <option key={bank} value={bank} className="bg-slate-900">
+                    <option key={bank} value={bank} className="bg-white text-gray-900 dark:bg-slate-900 dark:text-white">
                       {bank}
                     </option>
                   ))}
@@ -169,7 +169,7 @@ const DemoBankForm = ({ userId }: { userId: string }) => {
                     <option
                       key={wallet}
                       value={wallet}
-                      className="bg-slate-900">
+                      className="bg-white text-gray-900 dark:bg-slate-900 dark:text-white">
                       {wallet}
                     </option>
                   ))}

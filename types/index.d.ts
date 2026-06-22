@@ -61,7 +61,7 @@ declare type Account = {
   subtype: string;
   appwriteItemId: string;
   sharableId: string;
-  accountType?: "bank" | "mfs";
+  accountType?: "bank" | "mfs" | "remittance";
 };
 
 declare type Transaction = {
@@ -97,7 +97,7 @@ declare type Bank = {
 
   currentBalance?: number;
   availableBalance?: number;
-  accountType?: "bank" | "mfs";
+  accountType?: "bank" | "mfs" | "remittance";
 };
 
 declare type AccountTypes =
@@ -253,6 +253,7 @@ declare interface DoughnutChartProps {
 
 declare interface PaymentTransferFormProps {
   accounts: Account[];
+  userEmail?: string;
 }
 
 // Actions

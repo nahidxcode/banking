@@ -6,6 +6,7 @@ import {
   LinearScale,
   PointElement,
   LineElement,
+  Filler,
   Tooltip,
   Legend,
 } from "chart.js";
@@ -17,6 +18,7 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  Filler,
   Tooltip,
   Legend,
 );
@@ -35,6 +37,9 @@ const SpendingTrendChart = ({
   > = {};
 
   transactions.forEach((transaction) => {
+    // transfers are internal, not income or spending
+    if (transaction.category === "Transfer") return;
+
     const date = new Date(transaction.date);
 
     const monthKey = `${date.getFullYear()}-${String(
@@ -48,9 +53,12 @@ const SpendingTrendChart = ({
       };
     }
 
-    if (transaction.type === "credit") {
+    if (transaction.category === "INCOME") {
       monthlyData[monthKey].income += Number(transaction.amount);
-    } else {
+    } else if (
+      Number(transaction.amount) > 0 &&
+      transaction.type !== "credit"
+    ) {
       monthlyData[monthKey].expenses += Number(transaction.amount);
     }
   });
@@ -75,16 +83,21 @@ const SpendingTrendChart = ({
     (month) => monthlyData[month].expenses,
   );
 
+  // neutral grays work on light and dark
+  const axis = "#94a3b8";
+  const grid = "rgba(148,163,184,0.15)";
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-slate-900/30">
-      <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
-        Financial Trend Analysis
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-slate-800">
+      <h2 className="mb-1 text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+        Income vs Expenses
       </h2>
 
-      <p className="mb-5 text-gray-500 dark:text-gray-400">
-        Compare income and expenses across months to identify savings trends.
+      <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
+        Track your cashflow across months to spot savings trends.
       </p>
 
+      <div className="h-[500px] w-full">
       <Line
         data={{
           labels,
@@ -93,22 +106,27 @@ const SpendingTrendChart = ({
               label: "Income",
               data: incomeValues,
               borderColor: "#10b981",
-              backgroundColor: "#10b981",
+              backgroundColor: "rgba(16,185,129,0.12)",
+              fill: true,
               tension: 0.35,
               borderWidth: 3,
+              pointRadius: 3,
             },
             {
               label: "Expenses",
               data: expenseValues,
               borderColor: "#ef4444",
-              backgroundColor: "#ef4444",
+              backgroundColor: "rgba(239,68,68,0.12)",
+              fill: true,
               tension: 0.35,
               borderWidth: 3,
+              pointRadius: 3,
             },
           ],
         }}
         options={{
           responsive: true,
+          maintainAspectRatio: false,
           interaction: {
             mode: "index",
             intersect: false,
@@ -116,7 +134,7 @@ const SpendingTrendChart = ({
           plugins: {
             legend: {
               labels: {
-                color: "#d1d5db",
+                color: axis,
                 font: {
                   size: 13,
                   weight: "bold",
@@ -128,31 +146,26 @@ const SpendingTrendChart = ({
                 label: (context) =>
                   `${context.dataset.label}: ৳${Number(
                     context.parsed.y,
-                  ).toFixed(2)}`,
+                  ).toLocaleString()}`,
               },
             },
           },
           scales: {
             x: {
-              ticks: {
-                color: "#d1d5db",
-              },
-              grid: {
-                color: "rgba(255,255,255,0.06)",
-              },
+              ticks: { color: axis },
+              grid: { color: grid },
             },
             y: {
               ticks: {
-                color: "#d1d5db",
+                color: axis,
                 callback: (value) => `৳${value}`,
               },
-              grid: {
-                color: "rgba(255,255,255,0.06)",
-              },
+              grid: { color: grid },
             },
           },
         }}
       />
+      </div>
     </div>
   );
 };

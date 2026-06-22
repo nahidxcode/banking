@@ -1,16 +1,12 @@
 import HeaderBox from "@/components/HeaderBox";
-import { Pagination } from "@/components/Pagination";
-import TransactionsTable from "@/components/TransactionsTable";
+import TransactionHistoryView from "@/components/TransactionHistoryView";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
-import { getLoggedInUser } from "@/lib/actions/user.actions";
-import { formatAmount } from "@/lib/utils";
+import { getLoggedInUser } from "@/lib/auth";
+import Money from "@/components/Money";
 import React from "react";
 import { BankDropdown } from "@/components/BankDropdown";
 
-const TransactionHistory = async ({
-  searchParams: { id, page },
-}: SearchParamProps) => {
-  const currentPage = Number(page as string) || 1;
+const TransactionHistory = async ({ searchParams: { id } }: SearchParamProps) => {
   const loggedIn = await getLoggedInUser();
   const accounts = await getAccounts({
     userId: loggedIn.$id,
@@ -18,21 +14,15 @@ const TransactionHistory = async ({
 
   if (!accounts) return;
 
-  const accountsData = accounts?.data;
+  // remittance is USD, handled on my-banks
+  const accountsData =
+    accounts?.data?.filter(
+      (account: Account) => account.accountType !== "remittance",
+    ) || [];
   const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
 
   const account = await getAccount({ appwriteItemId });
 
-  const rowsPerPage = 10;
-  const totalPages = Math.ceil(account?.transactions.length / rowsPerPage);
-
-  const indexOfLastTransaction = currentPage * rowsPerPage;
-  const indexOfFirstTransaction = indexOfLastTransaction - rowsPerPage;
-
-  const currentTransactions = account?.transactions.slice(
-    indexOfFirstTransaction,
-    indexOfLastTransaction,
-  );
   return (
     <div className="transactions">
       <div className="transactions-header">
@@ -67,19 +57,12 @@ const TransactionHistory = async ({
             </p>
 
             <p className="text-24 text-center font-bold text-gray-900 dark:text-white">
-              {formatAmount(account?.data.currentBalance)}
+              <Money value={account?.data.currentBalance || 0} />
             </p>
           </div>
         </div>
 
-        <section className="flex w-full flex-col gap-6">
-          <TransactionsTable transactions={currentTransactions} />
-          {totalPages > 1 && (
-            <div className="my-4 w-full">
-              <Pagination totalPages={totalPages} page={currentPage} />
-            </div>
-          )}
-        </section>
+        <TransactionHistoryView transactions={account?.transactions || []} />
       </div>
     </div>
   );

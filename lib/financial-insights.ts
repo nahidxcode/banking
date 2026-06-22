@@ -1,11 +1,14 @@
 export const calculateFinancialInsights = (transactions: Transaction[]) => {
   const totalTransactions = transactions.length;
 
+  // transfers are internal, not real income/spending
   const spending = transactions.filter(
-    (t) => Number(t.amount) > 0 && t.type !== "credit",
+    (t) =>
+      Number(t.amount) > 0 && t.type !== "credit" && t.category !== "Transfer",
   );
 
-  const income = transactions.filter((t) => t.type === "credit");
+  // income = anything tagged "INCOME" (salary, remittance, wallet withdrawals)
+  const income = transactions.filter((t) => t.category === "INCOME");
 
   const totalSpent = spending.reduce((sum, t) => sum + Number(t.amount), 0);
 

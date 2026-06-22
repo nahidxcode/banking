@@ -1,3 +1,5 @@
+import Money from "./Money";
+
 const InsightsSummary = ({ insights }: { insights: any }) => {
   const categories = Object.entries(insights.categoryMap) as [string, number][];
 
@@ -18,7 +20,7 @@ const InsightsSummary = ({ insights }: { insights: any }) => {
     {
       icon: "💰",
       title: "Average Transaction",
-      value: `BDT ${insights.averageTransaction.toFixed(2)}`,
+      value: <Money value={insights.averageTransaction} />,
       text: "Average amount per transaction",
     },
     {

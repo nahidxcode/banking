@@ -1,23 +1,26 @@
-import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
-import { getLoggedInUser } from "@/lib/actions/user.actions";
+import { getAccount } from "@/lib/actions/bank.actions";
+import { getBanks } from "@/lib/actions/user.actions";
+import { getLoggedInUser } from "@/lib/auth";
 
 import MonthlyAnalytics from "@/components/MonthlyAnalytics";
 
 const MonthlyAnalyticsPage = async () => {
   const user = await getLoggedInUser();
 
-  const accounts = await getAccounts({
+  const banks = await getBanks({
     userId: user.$id,
   });
 
-  if (!accounts) return null;
+  if (!banks) return null;
 
   const accountResults = await Promise.all(
-    accounts.data.map(async (account: Account) => {
-      return await getAccount({
-        appwriteItemId: account.appwriteItemId,
-      });
-    }),
+    banks
+      .filter((bank: Bank) => bank.accountType !== "remittance")
+      .map(async (bank: Bank) => {
+        return await getAccount({
+          appwriteItemId: bank.$id,
+        });
+      }),
   );
 
   const allTransactions = accountResults.flatMap(

@@ -12,12 +12,15 @@ export const calculateMonthlyAnalytics = (
     return transactionMonth === selectedMonth;
   });
 
+  // transfers are internal, not real income/spending
   const expenses = monthlyTransactions.filter(
-    (t) => Number(t.amount) > 0 && t.type !== "credit",
+    (t) =>
+      Number(t.amount) > 0 && t.type !== "credit" && t.category !== "Transfer",
   );
 
+  // income = anything tagged "INCOME" (salary, remittance, wallet withdrawals)
   const incomeTransactions = monthlyTransactions.filter(
-    (t) => t.type === "credit",
+    (t) => t.category === "INCOME",
   );
 
   const totalExpenses = expenses.reduce((sum, t) => sum + Number(t.amount), 0);

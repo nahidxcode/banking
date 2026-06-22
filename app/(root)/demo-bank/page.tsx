@@ -1,6 +1,6 @@
 import DemoBankForm from "@/components/DemoBankForm";
 import HeaderBox from "@/components/HeaderBox";
-import { getLoggedInUser } from "@/lib/actions/user.actions";
+import { getLoggedInUser } from "@/lib/auth";
 
 const DemoBankPage = async () => {
   const user = await getLoggedInUser();

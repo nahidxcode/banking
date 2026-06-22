@@ -11,6 +11,17 @@ import {
 import { getDemoTransactions } from "./demo-transaction.actions";
 import { plaidClient } from "../plaid";
 import { parseStringify } from "../utils";
+import { unstable_cache } from "next/cache";
+import { cache } from "react";
+
+// dedupe accountsGet within one render (not across requests, so balances stay fresh)
+const getPlaidAccounts = cache(async (accessToken: string) => {
+  const accountsResponse = await plaidClient.accountsGet({
+    access_token: accessToken,
+  });
+
+  return accountsResponse.data;
+});
 
 import { getTransactionsByBankId } from "./transaction.actions";
 import { getBanks, getBank } from "./user.actions";
@@ -42,15 +53,13 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
           };
         }
 
-        // get each account info from plaid
-        const accountsResponse = await plaidClient.accountsGet({
-          access_token: bank.accessToken,
-        });
-        const accountData = accountsResponse.data.accounts[0];
+        // get each account info from plaid (deduped per render)
+        const plaidData = await getPlaidAccounts(bank.accessToken);
+        const accountData = plaidData.accounts[0];
 
         // get institution info from plaid
         const institution = await getInstitution({
-          institutionId: accountsResponse.data.item.institution_id!,
+          institutionId: plaidData.item.institution_id!,
         });
 
         const account = {
@@ -73,6 +82,9 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
 
     const totalBanks = accounts.length;
     const totalCurrentBalance = accounts.reduce((total, account) => {
+      // remittance is USD, skip it from the BDT total
+      if (account.accountType === "remittance") return total;
+
       return total + account.currentBalance;
     }, 0);
 
@@ -117,7 +129,9 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
           id: tx.$id,
           name: tx.name,
           amount: tx.amount,
-          date: tx.date,
+          // clamp future-dated demo rows back to when they were created
+          date:
+            new Date(tx.date).getTime() > Date.now() ? tx.$createdAt : tx.date,
           paymentChannel:
             tx.category === "FOOD AND DRINK"
               ? "in store"
@@ -154,11 +168,9 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
       });
     }
 
-    // get account info from plaid
-    const accountsResponse = await plaidClient.accountsGet({
-      access_token: bank.accessToken,
-    });
-    const accountData = accountsResponse.data.accounts[0];
+    // get account info from plaid (deduped per render)
+    const plaidData = await getPlaidAccounts(bank.accessToken);
+    const accountData = plaidData.accounts[0];
 
     // get transfer transactions from appwrite
     const [transferTransactionsData, institution, transactions] =
@@ -168,7 +180,7 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
         }),
 
         getInstitution({
-          institutionId: accountsResponse.data.item.institution_id!,
+          institutionId: plaidData.item.institution_id!,
         }),
 
         getTransactions({
@@ -215,17 +227,26 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
   }
 };
 
-// Get bank info
-export const getInstitution = async ({
-  institutionId,
-}: getInstitutionProps) => {
-  try {
+// institution metadata is static, cache it across requests
+const fetchInstitution = unstable_cache(
+  async (institutionId: string) => {
     const institutionResponse = await plaidClient.institutionsGetById({
       institution_id: institutionId,
       country_codes: ["US"] as CountryCode[],
     });
 
-    const intitution = institutionResponse.data.institution;
+    return institutionResponse.data.institution;
+  },
+  ["plaid-institution"],
+  { revalidate: 86400 }, // 24 hours
+);
+
+// Get bank info
+export const getInstitution = async ({
+  institutionId,
+}: getInstitutionProps) => {
+  try {
+    const intitution = await fetchInstitution(institutionId);
 
     return parseStringify(intitution);
   } catch (error) {
@@ -238,6 +259,7 @@ export const getTransactions = async ({
   accessToken,
 }: getTransactionsProps) => {
   let hasMore = true;
+  let cursor: string | undefined = undefined;
   let transactions: any = [];
 
   try {
@@ -245,11 +267,12 @@ export const getTransactions = async ({
     while (hasMore) {
       const response = await plaidClient.transactionsSync({
         access_token: accessToken,
+        cursor,
       });
 
       const data = response.data;
 
-      transactions = response.data.added.map((transaction) => ({
+      const added = data.added.map((transaction) => ({
         id: transaction.transaction_id,
         name: transaction.name,
         paymentChannel: transaction.payment_channel,
@@ -264,6 +287,10 @@ export const getTransactions = async ({
         image: transaction.logo_url,
       }));
 
+      // advance the cursor so the next loop grabs the next page
+      transactions = [...transactions, ...added];
+
+      cursor = data.next_cursor;
       hasMore = data.has_more;
     }
 

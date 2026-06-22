@@ -1,7 +1,7 @@
 import HeaderBox from "@/components/HeaderBox";
 import PaymentTransferForm from "@/components/PaymentTransferForm";
 import { getAccounts } from "@/lib/actions/bank.actions";
-import { getLoggedInUser } from "@/lib/actions/user.actions";
+import { getLoggedInUser } from "@/lib/auth";
 import React from "react";
 
 const Transfer = async () => {
@@ -12,7 +12,11 @@ const Transfer = async () => {
 
   if (!accounts) return;
 
-  const accountsData = accounts?.data;
+  // remittance is USD, can't be a BDT transfer source
+  const accountsData =
+    accounts?.data?.filter(
+      (account: Account) => account.accountType !== "remittance",
+    ) || [];
 
   return (
     <section className="payment-transfer">
@@ -22,7 +26,7 @@ const Transfer = async () => {
       />
 
       <section className="size-full pt-5">
-        <PaymentTransferForm accounts={accountsData} />
+        <PaymentTransferForm accounts={accountsData} userEmail={loggedIn?.email} />
       </section>
     </section>
   );

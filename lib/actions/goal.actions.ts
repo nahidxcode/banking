@@ -58,6 +58,20 @@ export const getGoals = async (userId: string) => {
   }
 };
 
+export const deleteGoal = async (goalId: string) => {
+  try {
+    const { database } = await createAdminClient();
+
+    await database.deleteDocument(DATABASE_ID!, GOALS_COLLECTION_ID!, goalId);
+
+    return { success: true };
+  } catch (error) {
+    console.log(error);
+
+    return { success: false };
+  }
+};
+
 export const updateGoalProgress = async (goalId: string, amount: number) => {
   try {
     const { database } = await createAdminClient();

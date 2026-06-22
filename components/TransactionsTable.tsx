@@ -57,7 +57,10 @@ const TransactionsTable = ({ transactions }: TransactionTableProps) => {
 
       <TableBody>
         {transactions.map((t: Transaction) => {
-          const status = getTransactionStatus(new Date(t.date));
+          const status =
+            t.category === "Transfer"
+              ? "Success"
+              : getTransactionStatus(new Date(t.date));
           const amount = formatAmount(t.amount);
 
           const isDebit = t.type === "debit";

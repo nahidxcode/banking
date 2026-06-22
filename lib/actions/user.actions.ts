@@ -14,6 +14,7 @@ import {
 import { plaidClient } from "@/lib/plaid";
 import { revalidatePath } from "next/cache";
 import { addFundingSource, createDwollaCustomer } from "./dwolla.actions";
+import { deleteDemoTransactionsByBankId } from "./demo-transaction.actions";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
@@ -192,7 +193,7 @@ export const exchangePublicToken = async ({
   user,
 }: exchangePublicTokenProps) => {
   try {
-    // Exchange public token for access token and item ID
+    // swap public token for access token + item id
     const response = await plaidClient.itemPublicTokenExchange({
       public_token: publicToken,
     });
@@ -200,14 +201,14 @@ export const exchangePublicToken = async ({
     const accessToken = response.data.access_token;
     const itemId = response.data.item_id;
 
-    // Get account information from Plaid using the access token
+    // get account info from plaid
     const accountsResponse = await plaidClient.accountsGet({
       access_token: accessToken,
     });
 
     const accountData = accountsResponse.data.accounts[0];
 
-    // Create a processor token for Dwolla using the access token and account ID
+    // create a dwolla processor token
     const request: ProcessorTokenCreateRequest = {
       access_token: accessToken,
       account_id: accountData.account_id,
@@ -218,17 +219,16 @@ export const exchangePublicToken = async ({
       await plaidClient.processorTokenCreate(request);
     const processorToken = processorTokenResponse.data.processor_token;
 
-    // Create a funding source URL for the account using the Dwolla customer ID, processor token, and bank name
+    // create the dwolla funding source
     const fundingSourceUrl = await addFundingSource({
       dwollaCustomerId: user.dwollaCustomerId,
       processorToken,
       bankName: accountData.name,
     });
 
-    // If the funding source URL is not created, throw an error
     if (!fundingSourceUrl) throw Error;
 
-    // Create a bank account using the user ID, item ID, account ID, access token, funding source URL, and shareableId ID
+    // save the bank account
     await createBankAccount({
       userId: user.$id,
       bankId: itemId,
@@ -238,10 +238,8 @@ export const exchangePublicToken = async ({
       sharableId: encryptId(accountData.account_id),
     });
 
-    // Revalidate the path to reflect the changes
     revalidatePath("/");
 
-    // Return a success message
     return parseStringify({
       publicTokenExchange: "complete",
     });
@@ -302,6 +300,43 @@ export const getBankByAccountId = async ({
   }
 };
 
+export const deleteBank = async ({ documentId }: { documentId: string }) => {
+  try {
+    const { database } = await createAdminClient();
+
+    const bank = await database.getDocument(
+      DATABASE_ID!,
+      BANK_COLLECTION_ID!,
+      documentId,
+    );
+
+    // real plaid bank: try to revoke the item, but don't fail the delete if it errors
+    if (!bank.isManual && bank.accessToken && bank.accessToken !== "manual") {
+      try {
+        await plaidClient.itemRemove({ access_token: bank.accessToken });
+      } catch (err) {
+        console.error("Plaid itemRemove failed (continuing with delete):", err);
+      }
+    }
+
+    // demo bank: clean up its generated transactions
+    if (bank.isManual) {
+      await deleteDemoTransactionsByBankId(bank.$id);
+    }
+
+    await database.deleteDocument(DATABASE_ID!, BANK_COLLECTION_ID!, documentId);
+
+    revalidatePath("/my-banks");
+    revalidatePath("/");
+
+    return parseStringify({ success: true });
+  } catch (error) {
+    console.error("An error occurred while deleting the bank:", error);
+
+    return parseStringify({ success: false });
+  }
+};
+
 export const updateBankBalance = async ({
   bankId,
   currentBalance,
@@ -321,6 +356,10 @@ export const updateBankBalance = async ({
         availableBalance: currentBalance,
       },
     );
+
+    revalidatePath("/");
+    revalidatePath("/my-banks");
+    revalidatePath("/transaction-history");
 
     return parseStringify(bank);
   } catch (error) {

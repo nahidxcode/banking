@@ -1,4 +1,4 @@
-import { formatAmount } from "@/lib/utils";
+import Money from "./Money";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -16,31 +16,31 @@ const BankCard = ({
       case "bKash":
         return {
           logo: "/icons/bkash.jpg",
-          bg: "bg-pink-600",
+          gradient: "bg-gradient-to-br from-[#e2136e] to-[#9b0e4e]",
         };
 
       case "Nagad":
         return {
           logo: "/icons/nagad.jpg",
-          bg: "bg-orange-500",
+          gradient: "bg-gradient-to-br from-[#f7941d] to-[#ed1c24]",
         };
 
       case "Rocket":
         return {
           logo: "/icons/rocket.jpg",
-          bg: "bg-purple-600",
+          gradient: "bg-gradient-to-br from-[#8c3494] to-[#5e2364]",
         };
 
       case "Upay":
         return {
           logo: "/icons/upay.jpg",
-          bg: "bg-green-600",
+          gradient: "bg-gradient-to-br from-[#0ea5a4] to-[#0e7490]",
         };
 
       default:
         return {
           logo: "/icons/logo.svg",
-          bg: "bg-gray-700",
+          gradient: "bg-gradient-to-br from-gray-700 to-gray-900",
         };
     }
   };
@@ -52,42 +52,49 @@ const BankCard = ({
       <div className="flex flex-col">
         <Link
           href={`/transaction-history/?id=${account.appwriteItemId}`}
-          className={`relative flex h-[190px] w-full max-w-[320px] flex-col justify-between rounded-[20px] p-5 text-white shadow-creditCard ${mfs.bg}`}>
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider">
+          className={`relative flex h-[190px] w-full max-w-[320px] flex-col justify-between overflow-hidden rounded-[20px] p-5 text-white shadow-creditCard transition-all duration-200 hover:-translate-y-1 hover:shadow-xl ${mfs.gradient}`}>
+          {/* header */}
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-xs font-semibold uppercase tracking-wider opacity-90">
               Mobile Wallet
             </span>
 
-            <div className="flex h-14 w-24 items-center justify-center p-1">
+            <div className="flex h-9 items-center justify-center rounded-md bg-white/95 px-2 shadow-sm">
               <Image
                 src={mfs.logo}
                 alt={account.name}
-                width={90}
-                height={50}
-                className="max-h-12 w-auto rounded-lg object-contain"
+                width={70}
+                height={28}
+                className="h-6 w-auto object-contain"
               />
             </div>
           </div>
 
-          <div>
-            <h2 className="text-2xl font-bold">{account.name}</h2>
+          {/* provider + balance */}
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-bold">{account.name}</h2>
 
-            <p className="mt-2 text-3xl font-black">
-              {formatAmount(account.currentBalance)}
+            <p className="mt-0.5 truncate text-2xl font-black">
+              <Money value={account.currentBalance} />
             </p>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs opacity-80">Account Holder</p>
-
-              <p className="font-semibold">{userName}</p>
+          {/* footer */}
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wide opacity-80">
+                Account Holder
+              </p>
+              <p className="truncate text-sm font-semibold">{userName}</p>
             </div>
 
-            <div className="text-right">
-              <p className="text-xs opacity-80">Wallet ID</p>
-
-              <p className="font-semibold">****{account.mask || "0000"}</p>
+            <div className="shrink-0 text-right">
+              <p className="text-[10px] uppercase tracking-wide opacity-80">
+                Wallet ID
+              </p>
+              <p className="text-sm font-semibold">
+                ****{account.mask || "0000"}
+              </p>
             </div>
           </div>
         </Link>
@@ -107,7 +114,7 @@ const BankCard = ({
             <h1 className="text-16 font-semibold text-white">{account.name}</h1>
 
             <p className="font-ibm-plex-serif font-black text-white">
-              {formatAmount(account.currentBalance)}
+              <Money value={account.currentBalance} />
             </p>
           </div>
 
