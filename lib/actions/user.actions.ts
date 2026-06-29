@@ -13,6 +13,7 @@ import {
 
 import { plaidClient } from "@/lib/plaid";
 import { revalidatePath } from "next/cache";
+import { SessionUnavailableError } from "../errors";
 import { addFundingSource, createDwollaCustomer } from "./dwolla.actions";
 import { deleteDemoTransactionsByBankId } from "./demo-transaction.actions";
 
@@ -61,6 +62,14 @@ export const signIn = async ({ email, password }: signInProps) => {
 export const signUp = async ({ password, ...userData }: SignUpParams) => {
   const { email, firstName, lastName } = userData;
 
+  // Bangladesh signup doesn't collect SSN/state, but the Appwrite users
+  // collection requires them and the Dwolla (US sandbox) customer needs a valid
+  // SSN + 2-letter state — fill safe placeholders so both keep working.
+  const compliance = {
+    ssn: userData.ssn || "1234",
+    state: userData.state || "NY",
+  };
+
   let newUserAccount;
 
   try {
@@ -75,8 +84,13 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
 
     if (!newUserAccount) throw new Error("Error creating user");
 
+    // Dwolla (US sandbox) validates US-format fields; a Bangladeshi postal code
+    // isn't a valid US ZIP, so send a placeholder ZIP to Dwolla while still
+    // storing the user's real postal code in our own DB below.
     const dwollaCustomerUrl = await createDwollaCustomer({
       ...userData,
+      ...compliance,
+      postalCode: "10001",
       type: "personal",
     });
 
@@ -90,6 +104,7 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
       ID.unique(),
       {
         ...userData,
+        ...compliance,
         userId: newUserAccount.$id,
         dwollaCustomerId,
         dwollaCustomerUrl,
@@ -111,18 +126,63 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
   }
 };
 
+// A transient network problem talking to Appwrite — distinct from a genuine
+// "not signed in" (no/invalid session) response. node's fetch surfaces these
+// either as an error `code` or, when wrapped, on `error.cause.code`.
+function isTransientNetworkError(error: unknown): boolean {
+  const transientCodes = new Set([
+    "UND_ERR_CONNECT_TIMEOUT",
+    "ECONNREFUSED",
+    "ECONNRESET",
+    "ETIMEDOUT",
+    "ENOTFOUND",
+    "EAI_AGAIN",
+    "UND_ERR_HEADERS_TIMEOUT",
+    "UND_ERR_SOCKET",
+  ]);
+
+  const err = error as { code?: unknown; message?: unknown; cause?: { code?: unknown } };
+  const code = typeof err?.code === "string" ? err.code : err?.cause?.code;
+  if (typeof code === "string" && transientCodes.has(code)) return true;
+
+  // Undici often only says "fetch failed" with the real reason on `cause`.
+  return typeof err?.message === "string" && err.message.includes("fetch failed");
+}
+
 export async function getLoggedInUser() {
-  try {
-    const { account } = await createSessionClient();
-    const result = await account.get();
+  const maxAttempts = 3;
+  let lastError: unknown;
 
-    const user = await getUserInfo({ userId: result.$id });
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const { account } = await createSessionClient();
+      const result = await account.get();
 
-    return parseStringify(user);
-  } catch (error) {
-    console.log(error);
-    return null;
+      const user = await getUserInfo({ userId: result.$id });
+
+      return parseStringify(user);
+    } catch (error) {
+      lastError = error;
+
+      // Genuine auth failure (no/invalid/expired session) -> the user really is
+      // logged out. Return null so the caller redirects to sign-in.
+      if (!isTransientNetworkError(error)) {
+        console.log(error);
+        return null;
+      }
+
+      // Transient network blip -> brief backoff and retry instead of pretending
+      // the session is gone.
+      if (attempt < maxAttempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)));
+      }
+    }
   }
+
+  // Couldn't reach Appwrite at all. Don't log the user out — signal an
+  // infrastructure error so the route can show a retry instead of sign-in.
+  console.error("getLoggedInUser: auth service unreachable", lastError);
+  throw new SessionUnavailableError(lastError);
 }
 
 export const logoutAccount = async () => {

@@ -94,7 +94,11 @@ export function formatUsd(amount: number): string {
   }).format(absAmount)}`;
 }
 
-export const parseStringify = (value: any) => JSON.parse(JSON.stringify(value));
+// JSON.stringify(undefined) returns undefined, and JSON.parse(undefined) throws.
+// Guard so a missing record (e.g. an empty Appwrite lookup) yields undefined
+// instead of crashing the caller.
+export const parseStringify = (value: any) =>
+  value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 
 export const removeSpecialCharacters = (value: string) => {
   return value.replace(/[^\w\s]/gi, "");
@@ -152,7 +156,9 @@ export function countTransactionCategories(
   transactions: Transaction[],
 ): CategoryCount[] {
   const categoryCounts: { [category: string]: number } = {};
+  const categoryAmounts: { [category: string]: number } = {};
   let totalCount = 0;
+  let totalAmount = 0;
 
   // skip income and internal transfers
   const filteredTransactions =
@@ -164,14 +170,13 @@ export function countTransactionCategories(
 
   filteredTransactions.forEach((transaction) => {
     const category = transaction.category;
+    const amount = Math.abs(Number(transaction.amount) || 0);
 
-    if (categoryCounts.hasOwnProperty(category)) {
-      categoryCounts[category]++;
-    } else {
-      categoryCounts[category] = 1;
-    }
+    categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+    categoryAmounts[category] = (categoryAmounts[category] || 0) + amount;
 
     totalCount++;
+    totalAmount += amount;
   });
 
   const aggregatedCategories: CategoryCount[] = Object.keys(categoryCounts).map(
@@ -179,10 +184,13 @@ export function countTransactionCategories(
       name: category,
       count: categoryCounts[category],
       totalCount,
+      amount: categoryAmounts[category],
+      totalAmount,
     }),
   );
 
-  aggregatedCategories.sort((a, b) => b.count - a.count);
+  // rank by how much was spent, not how many transactions
+  aggregatedCategories.sort((a, b) => b.amount - a.amount);
 
   return aggregatedCategories;
 }
@@ -219,12 +227,9 @@ export const authFormSchema = (type: string) =>
     lastName: type === "sign-in" ? z.string().optional() : z.string().min(3),
     address1: type === "sign-in" ? z.string().optional() : z.string().max(50),
     city: type === "sign-in" ? z.string().optional() : z.string().max(50),
-    state:
-      type === "sign-in" ? z.string().optional() : z.string().min(2).max(2),
     postalCode:
       type === "sign-in" ? z.string().optional() : z.string().min(3).max(6),
     dateOfBirth: type === "sign-in" ? z.string().optional() : z.string().min(3),
-    ssn: type === "sign-in" ? z.string().optional() : z.string().min(3),
     // both
     email: z.string().email(),
     password: z.string().min(8),

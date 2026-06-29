@@ -17,6 +17,17 @@ export const createBudget = async ({
   try {
     const { database } = await createAdminClient();
 
+    // one budget per category — duplicates double-count in the overview totals
+    const existing = await database.listDocuments(
+      DATABASE_ID!,
+      BUDGETS_COLLECTION_ID!,
+      [Query.equal("userId", [userId]), Query.equal("category", [category])],
+    );
+
+    if (existing.total > 0) {
+      throw new Error(`A budget for ${category} already exists.`);
+    }
+
     const budget = await database.createDocument(
       DATABASE_ID!,
       BUDGETS_COLLECTION_ID!,
@@ -29,8 +40,10 @@ export const createBudget = async ({
     );
 
     return parseStringify(budget);
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
+
+    throw new Error(error?.message || "Failed to create budget");
   }
 };
 

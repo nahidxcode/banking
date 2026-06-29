@@ -33,7 +33,13 @@ type AccountType = "bank" | "mfs" | "remittance";
 const randomInRange = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min)) + min;
 
-const ConnectAccountModal = ({ userId }: { userId: string }) => {
+const ConnectAccountModal = ({
+  userId,
+  onLinked,
+}: {
+  userId: string;
+  onLinked?: () => void;
+}) => {
   const [open, setOpen] = useState(false);
 
   const [step, setStep] = useState(1);
@@ -123,10 +129,16 @@ const ConnectAccountModal = ({ userId }: { userId: string }) => {
         });
       }
 
-      window.location.reload();
-    } catch (error) {
+      // let the caller decide what happens next (e.g. route to dashboard after
+      // signup); default to a reload so existing usages refresh in place
+      if (onLinked) {
+        onLinked();
+      } else {
+        window.location.reload();
+      }
+    } catch (error: any) {
       setErrorMessage(
-        `${provider} is already connected. Please choose another provider.`,
+        error?.message || "Couldn't connect this account. Please try again.",
       );
       setLinking(false);
     }
@@ -380,7 +392,9 @@ const ConnectAccountModal = ({ userId }: { userId: string }) => {
               {errorMessage && (
                 <div className="rounded-xl border border-red-500 bg-red-500/10 p-4">
                   <h3 className="font-bold text-red-500">
-                    ⚠ Provider Already Connected
+                    {errorMessage.includes("already connected")
+                      ? "⚠ Provider Already Connected"
+                      : "⚠ Connection Failed"}
                   </h3>
 
                   <p className="mt-1 text-sm text-red-600 dark:text-red-300">
@@ -389,13 +403,15 @@ const ConnectAccountModal = ({ userId }: { userId: string }) => {
                 </div>
               )}
 
-              <div className="rounded-xl border border-green-500 bg-green-500/10 p-4">
-                <h3 className="font-bold text-green-500">✓ Account Found</h3>
+              {!errorMessage && (
+                <div className="rounded-xl border border-green-500 bg-green-500/10 p-4">
+                  <h3 className="font-bold text-green-500">✓ Account Found</h3>
 
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {provider} successfully connected
-                </p>
-              </div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {provider} successfully connected
+                  </p>
+                </div>
+              )}
 
               <div className="rounded-xl border border-gray-200 p-5 dark:border-gray-700">
                 <p className="text-sm text-gray-500 dark:text-gray-400">

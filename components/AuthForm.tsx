@@ -22,13 +22,14 @@ import CustomInput from "./CustomInput";
 import { authFormSchema } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getLoggedInUser, signIn, signUp } from "@/lib/actions/user.actions";
-import PlaidLink from "./PlaidLink";
+import { signIn, signUp } from "@/lib/actions/user.actions";
+import ConnectAccountModal from "./ConnectAccountModal";
 
 const AuthForm = ({ type }: { type: string }) => {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const formSchema = authFormSchema(type);
 
@@ -44,6 +45,7 @@ const AuthForm = ({ type }: { type: string }) => {
   // 2. Define a submit handler.
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
+    setError(null);
 
     try {
       // Sign up with Appwrite & create plaid token
@@ -54,15 +56,21 @@ const AuthForm = ({ type }: { type: string }) => {
           lastName: data.lastName!,
           address1: data.address1!,
           city: data.city!,
-          state: data.state!,
           postalCode: data.postalCode!,
           dateOfBirth: data.dateOfBirth!,
-          ssn: data.ssn!,
           email: data.email,
           password: data.password,
         };
 
         const newUser = await signUp(userData);
+
+        // signUp swallows its own errors and returns undefined on failure
+        if (!newUser) {
+          setError(
+            "We couldn't create your account. The email may already be in use — please try again.",
+          );
+          return;
+        }
 
         setUser(newUser);
       }
@@ -73,10 +81,15 @@ const AuthForm = ({ type }: { type: string }) => {
           password: data.password,
         });
 
-        if (response) router.push("/");
+        if (response) {
+          router.push("/");
+        } else {
+          setError("Invalid email or password. Please try again.");
+        }
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -110,10 +123,22 @@ const AuthForm = ({ type }: { type: string }) => {
       </header>
       {user ? (
         <div className="flex flex-col gap-4">
-          <PlaidLink user={user} variant="primary" />
+          <ConnectAccountModal
+            userId={user.$id}
+            onLinked={() => router.push("/")}
+          />
+          <Link href="/" className="form-link text-center text-14">
+            Skip for now →
+          </Link>
         </div>
       ) : (
         <>
+          {error && (
+            <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+              {error}
+            </div>
+          )}
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {type === "sign-up" && (
@@ -147,29 +172,15 @@ const AuthForm = ({ type }: { type: string }) => {
                   <div className="flex gap-4">
                     <CustomInput
                       control={form.control}
-                      name="state"
-                      label="State"
-                      placeholder="Example: NY"
-                    />
-                    <CustomInput
-                      control={form.control}
                       name="postalCode"
                       label="Postal Code"
-                      placeholder="Example: 11101"
+                      placeholder="Example: 1207"
                     />
-                  </div>
-                  <div className="flex gap-4">
                     <CustomInput
                       control={form.control}
                       name="dateOfBirth"
                       label="Date of Birth"
                       placeholder="YYYY-MM-DD"
-                    />
-                    <CustomInput
-                      control={form.control}
-                      name="ssn"
-                      label="SSN"
-                      placeholder="Example: 1234"
                     />
                   </div>
                 </>

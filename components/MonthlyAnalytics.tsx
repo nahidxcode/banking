@@ -44,11 +44,29 @@ const DeltaBadge = ({
   );
 };
 
-const MonthlyAnalytics = ({
-  transactions,
-}: {
+type AnalyticsAccount = {
+  appwriteItemId: string;
+  name: string;
   transactions: Transaction[];
+};
+
+const MonthlyAnalytics = ({
+  accounts,
+}: {
+  accounts: AnalyticsAccount[];
 }) => {
+  // "all" merges every account; otherwise scope analytics to one account
+  const [selectedAccount, setSelectedAccount] = useState("all");
+
+  const transactions = useMemo(
+    () =>
+      selectedAccount === "all"
+        ? accounts.flatMap((a) => a.transactions)
+        : accounts.find((a) => a.appwriteItemId === selectedAccount)
+            ?.transactions || [],
+    [selectedAccount, accounts],
+  );
+
   const availableMonths = useMemo(() => {
     const months = new Set<string>();
 
@@ -65,14 +83,19 @@ const MonthlyAnalytics = ({
     return Array.from(months).sort().reverse();
   }, [transactions]);
 
-  const [selectedMonth, setSelectedMonth] = useState(availableMonths[0] || "");
+  const [selectedMonth, setSelectedMonth] = useState("");
 
-  const analytics = calculateMonthlyAnalytics(transactions, selectedMonth);
+  // keep a valid month selected even when switching accounts changes the list
+  const effectiveMonth = availableMonths.includes(selectedMonth)
+    ? selectedMonth
+    : availableMonths[0] || "";
+
+  const analytics = calculateMonthlyAnalytics(transactions, effectiveMonth);
 
   // prev month for the delta badges
   const prevAnalytics = calculateMonthlyAnalytics(
     transactions,
-    getPreviousMonth(selectedMonth),
+    getPreviousMonth(effectiveMonth),
   );
   const hasPrevData =
     prevAnalytics.totalIncome > 0 || prevAnalytics.totalExpenses > 0;
@@ -90,7 +113,7 @@ const MonthlyAnalytics = ({
       "0",
     )}`;
 
-    return month === selectedMonth;
+    return month === effectiveMonth;
   }).length;
 
   const savingsRate =
@@ -102,6 +125,18 @@ const MonthlyAnalytics = ({
     prevAnalytics.totalIncome > 0
       ? (prevAnalytics.netCashflow / prevAnalytics.totalIncome) * 100
       : 0;
+
+  // average daily spend (elapsed days so far if this is the current month)
+  const [emYear, emMonth] = effectiveMonth
+    ? effectiveMonth.split("-").map(Number)
+    : [0, 0];
+  const todayRef = new Date();
+  const isCurrentMonth =
+    emYear === todayRef.getFullYear() && emMonth === todayRef.getMonth() + 1;
+  const daysInMonth = emYear ? new Date(emYear, emMonth, 0).getDate() : 0;
+  const daysElapsed = isCurrentMonth ? todayRef.getDate() : daysInMonth;
+  const avgDailySpend =
+    daysElapsed > 0 ? analytics.totalExpenses / daysElapsed : 0;
 
   const formatMonth = (month: string) => {
     const [year, monthNumber] = month.split("-");
@@ -167,18 +202,34 @@ const MonthlyAnalytics = ({
           </p>
         </div>
 
-        {availableMonths.length > 0 && (
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-700 dark:bg-slate-900 dark:text-white">
-            {availableMonths.map((month) => (
-              <option key={month} value={month}>
-                {formatMonth(month)}
-              </option>
-            ))}
-          </select>
-        )}
+        <div className="flex flex-wrap gap-3">
+          {accounts.length > 0 && (
+            <select
+              value={selectedAccount}
+              onChange={(e) => setSelectedAccount(e.target.value)}
+              className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-700 dark:bg-slate-900 dark:text-white">
+              <option value="all">All accounts</option>
+              {accounts.map((a) => (
+                <option key={a.appwriteItemId} value={a.appwriteItemId}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {availableMonths.length > 0 && (
+            <select
+              value={effectiveMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-700 dark:bg-slate-900 dark:text-white">
+              {availableMonths.map((month) => (
+                <option key={month} value={month}>
+                  {formatMonth(month)}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
       {availableMonths.length === 0 ? (
@@ -201,7 +252,7 @@ const MonthlyAnalytics = ({
         {summaryCards.map((card) => (
           <div
             key={card.label}
-            className={`rounded-xl border p-5 ${card.box}`}>
+            className={`rounded-2xl border p-5 ${card.box}`}>
             <h3 className="text-sm text-gray-500 dark:text-gray-400">
               {card.label}
             </h3>
@@ -220,8 +271,42 @@ const MonthlyAnalytics = ({
       </div>
 
       <p className="-mt-2 text-sm text-gray-500 dark:text-gray-400">
-        {monthlyTransactionCount} transactions in {formatMonth(selectedMonth)}
+        {monthlyTransactionCount} transactions in {formatMonth(effectiveMonth)}
       </p>
+
+      {/* quick stats */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-slate-800">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Biggest transaction
+          </p>
+          {analytics.biggestTransaction ? (
+            <div className="mt-2 flex items-baseline justify-between gap-3">
+              <span className="truncate text-base font-semibold text-gray-900 dark:text-white">
+                {analytics.biggestTransaction.name}
+              </span>
+              <span className="shrink-0 text-xl font-bold text-rose-600 dark:text-rose-400">
+                <Money value={analytics.biggestTransaction.amount} />
+              </span>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-gray-400">No expenses this month</p>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-slate-800">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Avg daily spend
+          </p>
+          <p className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
+            <Money value={avgDailySpend} />
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            Over {daysElapsed} day{daysElapsed === 1 ? "" : "s"}
+            {isCurrentMonth ? " so far" : ""}
+          </p>
+        </div>
+      </div>
 
       {/* category breakdown */}
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-slate-800">
@@ -229,7 +314,7 @@ const MonthlyAnalytics = ({
           Spending Categories
         </h2>
         <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Breakdown of expenses for {formatMonth(selectedMonth)}.
+          Breakdown of expenses for {formatMonth(effectiveMonth)}.
         </p>
 
         {analytics.sortedCategories.length > 0 ? (
@@ -272,7 +357,43 @@ const MonthlyAnalytics = ({
         )}
       </div>
 
-      <DailySpendingChart transactions={transactions} month={selectedMonth} />
+      {/* top merchants */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-slate-800">
+        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+          Top Merchants
+        </h2>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Where most of your money went in {formatMonth(effectiveMonth)}.
+        </p>
+
+        {analytics.topMerchants.length > 0 ? (
+          <div className="mt-6 space-y-3">
+            {analytics.topMerchants.map((merchant, index) => (
+              <div
+                key={merchant.name}
+                className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-slate-900/40">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-xs font-bold text-blue-500">
+                    {index + 1}
+                  </span>
+                  <span className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                    {merchant.name}
+                  </span>
+                </div>
+                <span className="shrink-0 text-sm font-bold text-gray-900 dark:text-white">
+                  <Money value={merchant.amount} />
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-10 text-center text-gray-500 dark:text-gray-400">
+            No transactions found for this month.
+          </div>
+        )}
+      </div>
+
+      <DailySpendingChart transactions={transactions} month={effectiveMonth} />
         </>
       )}
     </section>

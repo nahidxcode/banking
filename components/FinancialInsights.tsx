@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -16,11 +17,29 @@ import SpendingPieChart from "./SpendingPieChart";
 import SpendingTrendChart from "./SpendingTrendChart";
 import InsightsSummary from "./InsightsSummary";
 
-const FinancialInsights = ({
-  transactions,
-}: {
+type InsightsAccount = {
+  appwriteItemId: string;
+  name: string;
   transactions: Transaction[];
+};
+
+const FinancialInsights = ({
+  accounts,
+}: {
+  accounts: InsightsAccount[];
 }) => {
+  // "all" merges every account; otherwise scope insights to one account
+  const [selectedAccount, setSelectedAccount] = useState("all");
+
+  const transactions = useMemo(
+    () =>
+      selectedAccount === "all"
+        ? accounts.flatMap((a) => a.transactions)
+        : accounts.find((a) => a.appwriteItemId === selectedAccount)
+            ?.transactions || [],
+    [selectedAccount, accounts],
+  );
+
   const insights = calculateFinancialInsights(transactions);
 
   const hasData = transactions.length > 0;
@@ -28,6 +47,23 @@ const FinancialInsights = ({
   const netSavings = insights.totalIncome - insights.totalSpent;
   const savingsRate =
     insights.totalIncome > 0 ? (netSavings / insights.totalIncome) * 100 : 0;
+
+  // qualitative read on the lifetime savings rate
+  const savingsHealth =
+    savingsRate < 0
+      ? {
+          label: "Overspending",
+          cls: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+        }
+      : savingsRate < 20
+        ? {
+            label: "Tight",
+            cls: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+          }
+        : {
+            label: "Healthy",
+            cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+          };
 
   const metrics = [
     {
@@ -69,13 +105,29 @@ const FinancialInsights = ({
   return (
     <div className="financial-insights">
       <section className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Financial Insights
-          </h1>
-          <p className="mt-1 text-gray-500 dark:text-gray-400">
-            A complete overview of your money across all linked accounts.
-          </p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+              Financial Insights
+            </h1>
+            <p className="mt-1 text-gray-500 dark:text-gray-400">
+              A complete overview of your money across all linked accounts.
+            </p>
+          </div>
+
+          {accounts.length > 0 && (
+            <select
+              value={selectedAccount}
+              onChange={(e) => setSelectedAccount(e.target.value)}
+              className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-gray-900 dark:border-gray-700 dark:bg-slate-900 dark:text-white">
+              <option value="all">All accounts</option>
+              {accounts.map((a) => (
+                <option key={a.appwriteItemId} value={a.appwriteItemId}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {!hasData ? (
@@ -98,7 +150,7 @@ const FinancialInsights = ({
               {metrics.map((m) => (
                 <div
                   key={m.label}
-                  className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-slate-800">
+                  className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-slate-800">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {m.label}
@@ -111,6 +163,12 @@ const FinancialInsights = ({
                   <p className={`mt-3 text-2xl font-bold ${m.valueColor}`}>
                     {m.value}
                   </p>
+                  {m.label === "Savings Rate" && (
+                    <span
+                      className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${savingsHealth.cls}`}>
+                      {savingsHealth.label}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

@@ -7,9 +7,11 @@ import Money from "@/components/Money";
 
 import { getGoals } from "@/lib/actions/goal.actions";
 import { getLoggedInUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 const GoalsPage = async () => {
   const user = await getLoggedInUser();
+  if (!user) redirect("/sign-in");
 
   const goals: Goal[] = (await getGoals(user.$id)) || [];
 

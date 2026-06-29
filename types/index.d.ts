@@ -12,10 +12,10 @@ declare type SignUpParams = {
   lastName: string;
   address1: string;
   city: string;
-  state: string;
+  state?: string;
   postalCode: string;
   dateOfBirth: string;
-  ssn: string;
+  ssn?: string;
   email: string;
   password: string;
 };
@@ -113,6 +113,8 @@ declare type CategoryCount = {
   name: string;
   count: number;
   totalCount: number;
+  amount: number;
+  totalAmount: number;
 };
 
 declare type Receiver = {

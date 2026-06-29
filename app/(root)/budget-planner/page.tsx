@@ -8,6 +8,7 @@ import BudgetRecommendations from "@/components/BudgetRecommendations";
 import { AlertTriangle, ReceiptText, Wallet } from "lucide-react";
 
 import { getLoggedInUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { getBanks } from "@/lib/actions/user.actions";
 import { getAccount } from "@/lib/actions/bank.actions";
 import { getBudgets } from "@/lib/actions/budget.actions";
@@ -15,6 +16,7 @@ import { calculateBudgetUsage } from "@/lib/budget-utils";
 
 const BudgetPlannerPage = async () => {
   const user = await getLoggedInUser();
+  if (!user) redirect("/sign-in");
 
   const banks = await getBanks({
     userId: user.$id,
@@ -78,7 +80,7 @@ const BudgetPlannerPage = async () => {
 
       {/* monthly budget overview */}
       {budgets?.length > 0 && (
-        <div className="rounded-xl border p-6 dark:border-gray-700 dark:bg-slate-800">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-700 dark:bg-slate-800">
           <div className="mb-5">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               Monthly Budget Overview
@@ -146,12 +148,15 @@ const BudgetPlannerPage = async () => {
         </div>
       )}
 
-      <BudgetForm userId={user.$id} />
+      <BudgetForm
+        userId={user.$id}
+        existingCategories={(budgets || []).map((b: Budget) => b.category)}
+      />
 
       <BudgetRecommendations transactions={allTransactions} />
 
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="flex items-center gap-4 rounded-xl border p-5 dark:border-gray-700 dark:bg-slate-800">
+        <div className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-slate-800">
           <span className="flex size-11 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500">
             <Wallet size={22} />
           </span>
@@ -165,7 +170,7 @@ const BudgetPlannerPage = async () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 rounded-xl border p-5 dark:border-gray-700 dark:bg-slate-800">
+        <div className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-slate-800">
           <span
             className={`flex size-11 items-center justify-center rounded-lg ${
               overBudgetCount > 0
@@ -187,7 +192,7 @@ const BudgetPlannerPage = async () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-4 rounded-xl border p-5 dark:border-gray-700 dark:bg-slate-800">
+        <div className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-slate-800">
           <span className="flex size-11 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500">
             <ReceiptText size={22} />
           </span>
@@ -212,7 +217,7 @@ const BudgetPlannerPage = async () => {
         ))}
 
         {budgets?.length === 0 && (
-          <div className="rounded-xl border border-dashed p-12 text-center dark:border-gray-700">
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-12 text-center dark:border-gray-700 dark:bg-slate-800">
             <h3 className="text-xl font-semibold dark:text-white">
               No budgets created yet
             </h3>

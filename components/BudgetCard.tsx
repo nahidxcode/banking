@@ -35,12 +35,12 @@ const BudgetCard = ({
 
   return (
     <div
-      className={`rounded-xl border p-5 transition-all dark:bg-slate-800 ${
+      className={`rounded-2xl border bg-white p-5 transition-all dark:bg-slate-800 ${
         status === "over"
           ? "border-red-500/40"
           : status === "warning"
             ? "border-yellow-500/40"
-            : "dark:border-gray-700"
+            : "border-gray-200 dark:border-gray-700"
       }`}>
       <div className="flex items-start justify-between">
         <div>

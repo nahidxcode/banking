@@ -94,6 +94,64 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
   }
 };
 
+// look up the account name of every counterparty in a set of transfer records,
+// so each side can show who the transfer was with (not just a generic "Transfer")
+const getTransferCounterpartyNames = async (
+  documents: Transaction[],
+  currentBankId: string,
+) => {
+  const counterpartyIds = Array.from(
+    new Set(
+      documents.map((t) =>
+        t.senderBankId === currentBankId ? t.receiverBankId : t.senderBankId,
+      ),
+    ),
+  ).filter(Boolean);
+
+  const entries = await Promise.all(
+    counterpartyIds.map(async (id) => {
+      const bank = await getBank({ documentId: id });
+      return [id, bank?.bankName as string | undefined] as const;
+    }),
+  );
+
+  const nameById: Record<string, string> = {};
+  for (const [id, name] of entries) {
+    if (name) nameById[id] = name;
+  }
+
+  return nameById;
+};
+
+// build the name shown on a transfer row from the viewer's perspective:
+// outgoing -> "Transfer to <receiver>", incoming -> "Transfer from <sender>",
+// keeping the user's note (if any) appended
+const buildTransferName = (
+  transferData: Transaction,
+  currentBankId: string,
+  nameById: Record<string, string>,
+) => {
+  const isOutgoing = transferData.senderBankId === currentBankId;
+  const counterpartyId = isOutgoing
+    ? transferData.receiverBankId
+    : transferData.senderBankId;
+  const counterpartyName = nameById[counterpartyId];
+
+  // a user-entered note is anything other than the default label
+  const note =
+    transferData.name && transferData.name !== "Transfer"
+      ? transferData.name
+      : "";
+
+  if (!counterpartyName) return transferData.name || "Transfer";
+
+  const base = isOutgoing
+    ? `Transfer to ${counterpartyName}`
+    : `Transfer from ${counterpartyName}`;
+
+  return note ? `${base} — ${note}` : base;
+};
+
 // Get one bank account
 export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
   try {
@@ -110,10 +168,15 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
           getDemoTransactions(bank.$id),
         ]);
 
+      const transferNameById = await getTransferCounterpartyNames(
+        transferTransactionsData.documents,
+        bank.$id,
+      );
+
       const transferTransactions =
         transferTransactionsData.documents.map((transferData: Transaction) => ({
           id: transferData.$id,
-          name: transferData.name,
+          name: buildTransferName(transferData, bank.$id, transferNameById),
           amount: Number(transferData.amount),
           date: transferData.$createdAt,
           paymentChannel: transferData.channel,
@@ -188,10 +251,15 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
         }),
       ]);
 
+    const transferNameById = await getTransferCounterpartyNames(
+      transferTransactionsData.documents,
+      bank.$id,
+    );
+
     const transferTransactions = transferTransactionsData.documents.map(
       (transferData: Transaction) => ({
         id: transferData.$id,
-        name: transferData.name!,
+        name: buildTransferName(transferData, bank.$id, transferNameById),
         amount: transferData.amount!,
         date: transferData.$createdAt,
         paymentChannel: transferData.channel,

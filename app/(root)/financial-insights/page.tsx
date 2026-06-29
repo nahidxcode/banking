@@ -1,10 +1,12 @@
 import { getAccount } from "@/lib/actions/bank.actions";
 import { getBanks } from "@/lib/actions/user.actions";
 import { getLoggedInUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import FinancialInsights from "@/components/FinancialInsights";
 
 const FinancialInsightsPage = async () => {
   const user = await getLoggedInUser();
+  if (!user) redirect("/sign-in");
 
   const banks = await getBanks({
     userId: user.$id,
@@ -22,11 +24,16 @@ const FinancialInsightsPage = async () => {
       }),
   );
 
-  const allTransactions = accountResults.flatMap(
-    (account) => account?.transactions || [],
-  );
+  // per-account bundles so the page can filter insights to a single account
+  const accounts = accountResults
+    .filter((r: any) => r?.data)
+    .map((r: any) => ({
+      appwriteItemId: r.data.appwriteItemId,
+      name: r.data.name,
+      transactions: r.transactions || [],
+    }));
 
-  return <FinancialInsights transactions={allTransactions} />;
+  return <FinancialInsights accounts={accounts} />;
 };
 
 export default FinancialInsightsPage;

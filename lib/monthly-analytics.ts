@@ -48,11 +48,37 @@ export const calculateMonthlyAnalytics = (
       amount,
     }));
 
+  // spending grouped by merchant (transaction name), not category
+  const merchantMap: Record<string, number> = {};
+
+  expenses.forEach((transaction) => {
+    const name = transaction.name || "Unknown";
+
+    merchantMap[name] = (merchantMap[name] || 0) + Number(transaction.amount);
+  });
+
+  const topMerchants = Object.entries(merchantMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, amount]) => ({ name, amount }));
+
+  // single largest expense of the month
+  const biggestTransaction = expenses.reduce<{
+    name: string;
+    amount: number;
+  } | null>((max, t) => {
+    const amount = Number(t.amount);
+    return amount > (max?.amount ?? -Infinity) ? { name: t.name, amount } : max;
+  }, null);
+
   return {
     totalIncome,
     totalExpenses,
     netCashflow,
     categoryMap,
     sortedCategories,
+    topMerchants,
+    biggestTransaction,
+    expenseCount: expenses.length,
   };
 };

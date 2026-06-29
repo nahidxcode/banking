@@ -1,7 +1,9 @@
 import MobileNav from "@/components/MobileNav";
 import Sidebar from "@/components/Sidebar";
+import ConnectionError from "@/components/ConnectionError";
 import { getLoggedInUser } from "@/lib/auth";
-import { redirect, RedirectType, useRouter } from "next/navigation";
+import { SessionUnavailableError } from "@/lib/errors";
+import { redirect } from "next/navigation";
 import * as Sentry from "@sentry/nextjs";
 import type { Metadata } from "next";
 
@@ -20,7 +22,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const loggedIn = await getLoggedInUser();
+  let loggedIn;
+  try {
+    loggedIn = await getLoggedInUser();
+  } catch (error) {
+    // Appwrite was unreachable — don't log the user out, show a retry instead.
+    if (error instanceof SessionUnavailableError) return <ConnectionError />;
+    throw error;
+  }
   if (!loggedIn) redirect("/sign-in");
 
   return (

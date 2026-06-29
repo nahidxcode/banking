@@ -11,7 +11,6 @@ import {
   cn,
   formatAmount,
   formatDateTime,
-  getTransactionStatus,
   removeSpecialCharacters,
 } from "@/lib/utils";
 
@@ -57,10 +56,9 @@ const TransactionsTable = ({ transactions }: TransactionTableProps) => {
 
       <TableBody>
         {transactions.map((t: Transaction) => {
-          const status =
-            t.category === "Transfer"
-              ? "Success"
-              : getTransactionStatus(new Date(t.date));
+          // demo rows are never pending, so they always read "Success"; only a
+          // genuinely pending (real Plaid) transaction shows "Processing"
+          const status = t.pending ? "Processing" : "Success";
           const amount = formatAmount(t.amount);
 
           const isDebit = t.type === "debit";
@@ -79,12 +77,12 @@ const TransactionsTable = ({ transactions }: TransactionTableProps) => {
               </TableCell>
 
               <TableCell
-                className={`pl-2 pr-10 font-black ${
+                className={`whitespace-nowrap pl-2 pr-10 font-black ${
                   isDebit
                     ? "text-red-500 dark:text-red-400"
                     : "text-green-600 dark:text-green-400"
                 }`}>
-                {isDebit ? `-${amount}` : amount}
+                {isDebit ? `−${amount}` : amount}
               </TableCell>
 
               <TableCell className="pl-2 pr-10">

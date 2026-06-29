@@ -6,6 +6,7 @@ import HeaderBox from "@/components/HeaderBox";
 import Money from "@/components/Money";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 import { getLoggedInUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { formatUsd } from "@/lib/utils";
 import { Globe, Landmark, Smartphone, Wallet } from "lucide-react";
 import React from "react";
@@ -63,6 +64,7 @@ const OverviewCard = ({
 
 const MyBanks = async () => {
   const loggedIn = await getLoggedInUser();
+  if (!loggedIn) redirect("/sign-in");
 
   const accounts = await getAccounts({
     userId: loggedIn.$id,
